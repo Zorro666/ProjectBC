@@ -395,9 +395,9 @@ public class GameLogic : MonoBehaviour
     {
         int[][] allCardValues = new int[(int)BC.CardCubeColour.Count][];
         allCardValues[(int)BC.CardCubeColour.Grey] = new int[] { 1, 4, 7, 10, 13 };
-        allCardValues[(int)BC.CardCubeColour.Blue] = new int[] { 1, 3, 4, 7, 10, 11, 13 };
-        allCardValues[(int)BC.CardCubeColour.Green] = new int[] { 1, 2, 3, 4, 7, 10, 11, 12, 13 };
-        allCardValues[(int)BC.CardCubeColour.Yellow] = new int[] { 1, 2, 3, 4, 5, 7, 9, 10, 11, 12, 13 };
+        allCardValues[(int)BC.CardCubeColour.Blue] = new int[] { 1, 3, 5, 7, 9, 11, 13 };
+        allCardValues[(int)BC.CardCubeColour.Green] = new int[] { 1, 2, 4, 6, 7, 8, 10, 12, 13 };
+        allCardValues[(int)BC.CardCubeColour.Yellow] = new int[] { 1, 2, 3, 5, 6, 7, 8, 9, 11, 12, 13 };
         allCardValues[(int)BC.CardCubeColour.Red] = new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 };
 
         int cardIndex = 0;
