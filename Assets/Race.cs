@@ -160,7 +160,7 @@ public class Race : MonoBehaviour
             if (score == minScoreValue)
             {
                 minTie = true;
-                maxScorePlayer = m_gamelogic.CurrentPlayer;
+                minScorePlayer = m_gamelogic.CurrentPlayer;
             }
 
             if (score < minScoreValue)
