@@ -19,9 +19,10 @@ public class GameLogic : MonoBehaviour
 
     enum TurnState
     {
-        FinishingRace,
+        StartingPlayerTurn,
         PickCardFromHand,
-        PlayCardOnRace
+        PlayCardOnRace,
+        FinishingRace
     }
 
     System.Random m_random;
@@ -119,8 +120,24 @@ public class GameLogic : MonoBehaviour
 
     public void GenericBottomButtonClicked()
     {
-        if (m_turnState == TurnState.FinishingRace)
-            ExitFinishingRace();
+        switch (m_turnState)
+        {
+            case TurnState.StartingPlayerTurn:
+            {
+                ExitStartingPlayerTurn();
+                break;
+            }
+            case TurnState.FinishingRace:
+            {
+                ExitFinishingRace();
+                break;
+            }
+            default:
+            {
+                Debug.Log("Unknown m_turnState: " + m_turnState);
+                break;
+            }
+        }
     }
 
     public void PlayerHandCardClicked(GameObject source)
@@ -160,6 +177,7 @@ public class GameLogic : MonoBehaviour
             return;
         if (m_turnState != TurnState.PlayCardOnRace)
             return;
+        HideHands();
         var raceName = source.transform.root.gameObject.name;
         if (raceName.StartsWith("Race", System.StringComparison.Ordinal) == false)
             Debug.LogError("PlayCard invalid raceName " + raceName);
@@ -208,14 +226,22 @@ public class GameLogic : MonoBehaviour
 
     void ExitFinishingRace()
     {
+        SetActiveGenericBottomButton(false);
         m_frame = 0;
         m_state = GameState.InGame;
         m_currentPlayer = m_finishedRace.Winner;
         m_finishedRace.StartRace();
         m_finishedRace = null;
-        SetActiveGenericBottomButton(false);
         EndPlayerTurn();
         StartPlayerTurn();
+    }
+
+    void ExitStartingPlayerTurn()
+    {
+        SetActiveGenericBottomButton(false);
+        m_turnState = TurnState.PickCardFromHand;
+        ShowHand(m_currentPlayer);
+        UpdateStatus();
     }
 
     public BC.CardCubeColour NextCube()
@@ -311,9 +337,9 @@ public class GameLogic : MonoBehaviour
         m_chosenHandCardIndex = -1;
         m_currentPlayer = (BC.Player)m_random.Next(GameLogic.PlayerCount);
 
+        HideHands();
         for (int player = 0; player < GameLogic.PlayerCount; ++player)
         {
-            HideHand((BC.Player)player);
             for (int cubeType = 0; cubeType < GameLogic.CubeTypeCount; ++cubeType)
             {
                 m_playerCubeCountsTexts[player, cubeType].color = CardCubeColour((BC.CardCubeColour)cubeType);
@@ -362,14 +388,15 @@ public class GameLogic : MonoBehaviour
     void StartPlayerTurn()
     {
         m_chosenHandCardIndex = -1;
-        m_turnState = TurnState.PickCardFromHand;
-        ShowHand(m_currentPlayer);
+        m_turnState = TurnState.StartingPlayerTurn;
+        SetGenericBottomButtonText("Continue");
+        SetActiveGenericBottomButton(true);
         UpdateStatus();
     }
 
     void EndPlayerTurn()
     {
-        HideHand(m_currentPlayer);
+        HideHands();
         m_currentPlayer++;
         if (m_currentPlayer == BC.Player.Count)
             m_currentPlayer = BC.Player.First;
@@ -379,6 +406,9 @@ public class GameLogic : MonoBehaviour
     {
         switch (m_turnState)
         {
+            case TurnState.StartingPlayerTurn:
+                StatusText.text = m_currentPlayer + " Player: Press Continue to Start Turn";
+                break;
             case TurnState.PickCardFromHand:
                 StatusText.text = m_currentPlayer + " Player: Choose a Card to Play";
                 break;
@@ -469,6 +499,12 @@ public class GameLogic : MonoBehaviour
     void ShowHand(BC.Player player)
     {
         m_playerHandGO[(int)player].SetActive(true);
+    }
+
+    void HideHands()
+    {
+        for (int player = 0; player < GameLogic.PlayerCount; ++player)
+            HideHand((BC.Player)player);
     }
 
     void HideHand(BC.Player player)
