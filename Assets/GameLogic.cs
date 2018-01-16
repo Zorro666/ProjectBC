@@ -177,7 +177,6 @@ public class GameLogic : MonoBehaviour
             return;
         if (m_turnState != TurnState.PlayCardOnRace)
             return;
-        HideHands();
         var raceName = source.transform.root.gameObject.name;
         if (raceName.StartsWith("Race", System.StringComparison.Ordinal) == false)
             Debug.LogError("PlayCard invalid raceName " + raceName);
@@ -205,6 +204,13 @@ public class GameLogic : MonoBehaviour
         }
         var card = m_playerHands[playerIndex, cardIndex];
         bool validCard = m_races[raceNumber - 1].PlayCard(side, card);
+        if (!validCard)
+        {
+            Debug.LogError("Card cannot be played on that Race. Please choose a different Race");
+            return;
+        }
+
+        HideHands();
         m_chosenHandCardIndex = -1;
         if (!validCard)
             DiscardCard(card);
