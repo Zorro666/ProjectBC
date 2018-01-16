@@ -144,7 +144,7 @@ public class GameLogic : MonoBehaviour
     {
         if (m_state != GameState.InGame)
             return;
-        if (m_turnState != TurnState.PickCardFromHand)
+        if ((m_turnState != TurnState.PickCardFromHand) && (m_turnState != TurnState.PlayCardOnRace))
             return;
         var playerHandSource = source.transform.parent.parent.name;
         var currentPlayerHand = m_currentPlayer + "Player";
