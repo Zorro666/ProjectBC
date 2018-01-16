@@ -2,6 +2,7 @@
 .collabignore
 Library/
 UnityPackageManager/
+Temp/
 
 # ===========================
 # Default Collab Ignore Rules
@@ -33,6 +34,6 @@ ehthumbs.db
 # Unity generated
 # ===============
 [Oo]bj/
-[Bb]uild
+[Bb]uild/
 sysinfo.txt
 *.stackdump
