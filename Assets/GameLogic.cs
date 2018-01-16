@@ -206,7 +206,7 @@ public class GameLogic : MonoBehaviour
         bool validCard = m_races[raceNumber - 1].PlayCard(side, card);
         if (!validCard)
         {
-            Debug.LogError("Card cannot be played on that Race. Please choose a different Race");
+            StatusText.text = "Wrong Race. Please choose a different Race";
             return;
         }
 
@@ -416,10 +416,10 @@ public class GameLogic : MonoBehaviour
                 StatusText.text = m_currentPlayer + " Player: Press Continue to Start Turn";
                 break;
             case TurnState.PickCardFromHand:
-                StatusText.text = m_currentPlayer + " Player: Choose a Card to Play";
+                StatusText.text = "Choose a Card to Play";
                 break;
             case TurnState.PlayCardOnRace:
-                StatusText.text = m_currentPlayer + " Player: Choose the Race to Play On";
+                StatusText.text = "Choose a Race to Play on";
                 break;
             case TurnState.FinishingRace:
                 StatusText.text = m_finishedRace.Winner + " Player Won the Race";
