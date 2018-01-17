@@ -1,0 +1,15 @@
+Bugs
+Duplicate cards in hands that have already been played
+Random discard of 4 cards has invalid indexes
+
+High
+Detect when cups have been won : assign cups to players
+UI to show which cups players have won
+Detect winner of game (3 cups) : end game -> new game
+
+Medium
+Discard state : UI and logic for user to choose card : press discard (generic bottom button) : up to 4 cards
+Discard state: Need a "Done" button to end discard if want to discard less than 4 cards
+
+Low
+Make it clear to player which card they have chosen
