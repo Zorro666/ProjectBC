@@ -88,6 +88,17 @@ public class Race : MonoBehaviour
     {
     }
 
+    public bool CanPlayCard(Card card)
+    {
+        int cardColour = (int)card.Colour;
+        bool canPlayCard = false;
+        for (int playerIndex = 0; playerIndex < (int)BC.Player.Count; ++playerIndex)
+        {
+            canPlayCard |= (m_cardsRemaining[playerIndex, cardColour] > 0);
+        }
+        return canPlayCard;
+    }
+
     public void StartRace()
     {
         for (int i = 0; i < m_cardsPlayed.Length; ++i)
