@@ -1,5 +1,4 @@
 Bugs
-Duplicate cards in hands that have already been played
 
 High
 Detect winner of game (3 cups) : end game -> new game
@@ -13,3 +12,4 @@ Wildcards: work out the UI for how to use wildcards
 
 Low
 Make it clear to player which card they have chosen
+Should really shuffle discard deck and then make it the draw deck

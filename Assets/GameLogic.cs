@@ -313,7 +313,7 @@ public class GameLogic : MonoBehaviour
             --numCardsToChooseFrom;
         }
 
-        //TODO: move this logic into the state machine to support UI repacing the random discard card selection
+        //TODO: move this logic into the state machine to support UI replacing the random discard card selection
         int playerIndex = (int)m_currentPlayer;
         for (int i = 0; i < numCardsToDiscard; ++i)
         {
@@ -349,7 +349,7 @@ public class GameLogic : MonoBehaviour
         int cubeTypeIndex = (int)cubeType;
         --m_cubeCounts[cubeTypeIndex];
         if (m_cubeCounts[cubeTypeIndex] < 0)
-            Debug.LogError("Negative cubeCounts " + cubeType);
+            Debug.LogError("Negative cubeCounts " + cubeType); 
         return m_cubes[m_cubesRemainingCount];
     }
 
@@ -581,8 +581,14 @@ public class GameLogic : MonoBehaviour
 
     void StartDrawDeckFromDiscardDeck()
     {
+        if (m_discardDeck.Count == 0)
+            Debug.LogError("Zero sized discard deck");
         m_drawDeck = m_discardDeck;
         ShuffleDrawDeck();
+        Debug.Log("New Draw Deck");
+        m_discardDeck.Clear();
+        if (m_drawDeck.Count == 0)
+            Debug.LogError("Zero sized draw deck");
     }
 
     void ShuffleDrawDeck()
