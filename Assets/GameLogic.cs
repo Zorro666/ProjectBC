@@ -30,6 +30,7 @@ public class GameLogic : MonoBehaviour
     BC.CardCubeColour[] m_cubes;
     Color[] m_cardCubeColours;
     int[] m_cubeCounts;
+    int[] m_cubeWinningCounts;
     GameState m_state;
     TurnState m_turnState;
     Race[] m_races;
@@ -50,6 +51,7 @@ public class GameLogic : MonoBehaviour
     Image[,] m_playerCardBackground;
     Text[,] m_playerCardValue;
     Card[,] m_playerHands;
+    Image[,] m_playerCupImage;
 
     static public int CubeTypeCount
     {
@@ -382,6 +384,7 @@ public class GameLogic : MonoBehaviour
         {
             var playerUIRootName = gameBoardUIRootName + (BC.Player)player + "Player/";
             var playerCubesBackgroundRootName = playerUIRootName + "CubesBackground/";
+            var playerCupsRootName = playerUIRootName + "CupsBackground/";
             for (int cubeType = 0; cubeType < GameLogic.CubeTypeCount; ++cubeType)
             {
                 var cubeCountText = playerCubesBackgroundRootName + (BC.CardCubeColour)cubeType;
@@ -391,6 +394,14 @@ public class GameLogic : MonoBehaviour
                 m_playerCubeCountsTexts[player, cubeType] = cubeCountGO.GetComponent<Text>();
                 if (m_playerCubeCountsTexts[player, cubeType] == null)
                     Debug.LogError("Can't find " + (BC.CardCubeColour)cubeType + " cube counts UI Text Component");
+
+                var cupImageName = playerCupsRootName + (BC.CardCubeColour)cubeType;
+                var cupImageGO = GameObject.Find(cupImageName);
+                if (cupImageGO == null)
+                    Debug.LogError("Can't find " + (BC.CardCubeColour)cubeType + " cup Image GameObject " + cupImageName);
+                m_playerCupImage[player, cubeType] = cupImageGO.GetComponent<Image>();
+                if (m_playerCupImage[player, cubeType] == null)
+                    Debug.LogError("Can't find " + (BC.CardCubeColour)cubeType + " cup UI Image Component");
             }
             var playerHandRootName = playerUIRootName + "Hand/";
             m_playerHandGO[player] = GameObject.Find(playerHandRootName);
@@ -438,10 +449,22 @@ public class GameLogic : MonoBehaviour
             {
                 m_playerCubeCountsTexts[player, cubeType].color = CardCubeColour((BC.CardCubeColour)cubeType);
                 m_playerCubeCounts[player, cubeType] = 0;
+                m_playerCupImage[player, cubeType].enabled = false;
             }
             UpdateCubeCounts((BC.Player)player);
         }
         StartPlayerTurn();
+    }
+
+    void HideCup(BC.CardCubeColour cubeType)
+    {
+        for (int player = 0; player < GameLogic.PlayerCount; ++player)
+            m_playerCupImage[player, (int)cubeType].enabled = false;
+    }
+
+    void ShowCup(BC.Player player, BC.CardCubeColour cubeType)
+    {
+        m_playerCupImage[(int)player, (int)cubeType].enabled = true;
     }
 
     void UpdateCubeCounts(BC.Player player)
@@ -451,6 +474,13 @@ public class GameLogic : MonoBehaviour
         {
             int cubeValue = m_playerCubeCounts[playerIndex, cubeType];
             m_playerCubeCountsTexts[playerIndex, cubeType].text = cubeValue.ToString();
+            var cubeCountToWin = m_cubeWinningCounts[cubeType];
+            if (cubeValue >= cubeCountToWin)
+            {
+                BC.CardCubeColour cubeColour = (BC.CardCubeColour)cubeType;
+                HideCup(cubeColour);
+                ShowCup(player, cubeColour);
+            }
         }
     }
 
@@ -643,6 +673,12 @@ public class GameLogic : MonoBehaviour
         m_cubeCounts[(int)BC.CardCubeColour.Green] = 9;
         m_cubeCounts[(int)BC.CardCubeColour.Yellow] = 11;
         m_cubeCounts[(int)BC.CardCubeColour.Red] = 13;
+        m_cubeWinningCounts = new int[GameLogic.CubeTypeCount];
+        m_cubeWinningCounts[(int)BC.CardCubeColour.Grey] = 3;
+        m_cubeWinningCounts[(int)BC.CardCubeColour.Blue] = 4;
+        m_cubeWinningCounts[(int)BC.CardCubeColour.Green] = 5;
+        m_cubeWinningCounts[(int)BC.CardCubeColour.Yellow] = 6;
+        m_cubeWinningCounts[(int)BC.CardCubeColour.Red] = 7;
         var numCubesTotal = 0;
         foreach (int count in m_cubeCounts)
             numCubesTotal += count; 
@@ -670,6 +706,7 @@ public class GameLogic : MonoBehaviour
         m_playerCardBackground = new Image[GameLogic.PlayerCount, GameLogic.HandSize];
         m_playerCardValue = new Text[GameLogic.PlayerCount, GameLogic.HandSize];
         m_playerHands = new Card[GameLogic.PlayerCount, GameLogic.HandSize];
+        m_playerCupImage = new Image[GameLogic.PlayerCount, GameLogic.CubeTypeCount];
 
         SetActiveGenericBottomButton(false);
     }
