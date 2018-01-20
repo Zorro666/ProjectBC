@@ -290,7 +290,7 @@ public class GameLogic : MonoBehaviour
             var cardToDiscardIndex = -1;
             for (int c = 0; c < HandSize; ++c)
             {
-                if (cardIndexes[c] > 0)
+                if (cardIndexes[c] >= 0)
                 {
                     if (cardIndex == discardIndex)
                     {
@@ -301,7 +301,7 @@ public class GameLogic : MonoBehaviour
                     ++cardIndex;
                 }
             }
-            if (cardToDiscardIndex > 0)
+            if (cardToDiscardIndex >= 0)
             {
                 cardsToDiscard[i] = cardToDiscardIndex;
             }
@@ -318,6 +318,7 @@ public class GameLogic : MonoBehaviour
         for (int i = 0; i < numCardsToDiscard; ++i)
         {
             var cardIndex = cardsToDiscard[i];
+            Debug.Log("Discard Card[" + i + "] " + cardIndex);
             var card = m_playerHands[playerIndex, cardIndex];
             DiscardCard(card);
             PlayerDrawNewCard(m_currentPlayer, cardIndex);
