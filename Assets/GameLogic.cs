@@ -130,25 +130,20 @@ public class GameLogic : MonoBehaviour
         switch (m_turnState)
         {
             case TurnState.StartingPlayerTurn:
-            {
                 ExitStartingPlayerTurn();
                 break;
-            }
             case TurnState.DiscardCardsFromHand:
-            {
                 ExitDiscardCardsFromHand();
                 break;
-            }
             case TurnState.FinishingRace:
-            {
                 ExitFinishingRace();
                 break;
-            }
+            case TurnState.FinishingGame:
+                ExitFinishingGame();
+                break;
             default:
-            {
                 Debug.Log("Unknown m_turnState: " + m_turnState);
                 break;
-            }
         }
     }
 
@@ -250,6 +245,17 @@ public class GameLogic : MonoBehaviour
     void ExitFinishingRace()
     {
         SetActiveGenericBottomButton(false);
+        for (BC.Player player = BC.Player.First; player < BC.Player.Count; ++player)
+        {
+            if (HasPlayerWon(player))
+            {
+                m_roundWinner = player;
+                m_turnState = TurnState.FinishingGame;
+                UpdateStatus();
+                return;
+            }
+        }
+
         m_frame = 0;
         m_state = GameState.InGame;
         m_currentPlayer = m_finishedRace.Winner;
@@ -257,6 +263,11 @@ public class GameLogic : MonoBehaviour
         m_finishedRace = null;
         EndPlayerTurn();
         StartPlayerTurn();
+    }
+
+    void ExitFinishingGame()
+    {
+        m_state = GameState.Initialising;
     }
 
     void ExitStartingPlayerTurn()
@@ -448,6 +459,7 @@ public class GameLogic : MonoBehaviour
         m_finishedRace = null;
         m_chosenHandCardIndex = -1;
         m_currentPlayer = (BC.Player)m_random.Next(GameLogic.PlayerCount);
+        m_roundWinner = BC.Player.Unknown;
 
         HideHands();
         for (int player = 0; player < GameLogic.PlayerCount; ++player)
@@ -499,11 +511,7 @@ public class GameLogic : MonoBehaviour
             m_playerCubeCountsTexts[playerIndex, cubeType].text = cubeValue.ToString();
             var cubeCountToWin = m_cubeWinningCounts[cubeType];
             if (cubeValue >= cubeCountToWin)
-            {
-                BC.CardCubeColour cubeColour = (BC.CardCubeColour)cubeType;
-                HideCup(cubeColour);
-                ShowCup(player, cubeColour);
-            }
+                AwardCupToPlayer(player, (BC.CardCubeColour)cubeType);
         }
     }
 
@@ -512,20 +520,35 @@ public class GameLogic : MonoBehaviour
         switch (m_turnState)
         {
             case TurnState.FinishingRace:
-            {
                 FinishingRace();
                 break;
-            }
+            case TurnState.FinishingGame:
+                FinishingGame();
+                break;
         }
         ++m_frame;
         if (m_frame == 30)
         {
             m_frame = 0;
         }
-        ValidateCubes();
+        if (!Validate())
+            Debug.LogError("Validation failed!");
+    }
+
+    void EndGame()
+    {
+        SetGenericBottomButtonText("Continue");
+        SetActiveGenericBottomButton(true);
     }
 
     void FinishingRace()
+    {
+        ++m_frame;
+        SetGenericBottomButtonText("Continue");
+        SetActiveGenericBottomButton(true);
+    }
+
+    void FinishingGame()
     {
         ++m_frame;
         SetGenericBottomButtonText("Continue");
@@ -567,6 +590,9 @@ public class GameLogic : MonoBehaviour
                 break;
             case TurnState.FinishingRace:
                 StatusText.text = m_finishedRace.Winner + " Player Won the Race";
+                break;
+            case TurnState.FinishingGame:
+                StatusText.text = m_roundWinner + " Player Won the Game";
                 break;
         }
     }
@@ -845,6 +871,9 @@ public class GameLogic : MonoBehaviour
                 break;
             case GameState.InGame:
                 InGame();
+                break;
+            case GameState.EndGame:
+                EndGame();
                 break;
         }
     }
