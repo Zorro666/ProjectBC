@@ -14,7 +14,8 @@ public class GameLogic : MonoBehaviour
     {
         Initialising,
         NewGame,
-        InGame
+        InGame,
+        EndGame
     }
 
     enum TurnState
@@ -23,7 +24,8 @@ public class GameLogic : MonoBehaviour
         PickCardFromHand,
         DiscardCardsFromHand,
         PlayCardOnRace,
-        FinishingRace
+        FinishingRace,
+        FinishingGame
     }
 
     System.Random m_random;
@@ -40,6 +42,7 @@ public class GameLogic : MonoBehaviour
     Card[] m_fullDeck;
     Queue<Card> m_drawDeck;
     Queue<Card> m_discardDeck;
+    BC.Player m_roundWinner;
     BC.Player m_currentPlayer;
     int m_chosenHandCardIndex;
     Race m_finishedRace;
