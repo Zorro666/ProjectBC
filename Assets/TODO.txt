@@ -3,9 +3,8 @@ Bugs
 High
 
 Medium
-Discard state : UI and logic for user to choose card : press discard (generic bottom button) : up to 4 cards
+Discard state: UI and logic for user to choose card : press discard (generic bottom button) : up to 4 cards
 Discard state: Need a "Done" button to end discard if want to discard less than 4 cards
-Discard state: let user play card after discard or discard up to 4 cards again
 Wildcards: work out the UI for how to use wildcards
 
 Low

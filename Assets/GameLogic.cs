@@ -40,6 +40,7 @@ public class GameLogic : MonoBehaviour
     int m_frame;
     int m_cubesRemainingCount;
     int m_cubesTotalCount;
+    int m_discardTurnsCount;
     BC.Player[] m_cupOwner;
     Card[] m_fullDeck;
     Queue<Card> m_drawDeck;
@@ -282,6 +283,7 @@ public class GameLogic : MonoBehaviour
         if (PlayerCanPlayCardOnARace())
         {
             m_turnState = TurnState.PickCardFromHand;
+            m_discardTurnsCount = 0;
         }
         else
         {
@@ -343,9 +345,16 @@ public class GameLogic : MonoBehaviour
             DiscardCard(card);
             PlayerDrawNewCard(m_currentPlayer, cardIndex);
         }
-        //TODO: check if player can still play a card and let them play it
-        EndPlayerTurn();
-        StartPlayerTurn();
+        //check if player can still play a card and let them play it
+        ++m_discardTurnsCount;
+        Debug.Log("DiscardTurnsCount " + m_discardTurnsCount);
+        if (m_discardTurnsCount < 2)
+            ExitStartingPlayerTurn();
+        else
+        {
+            EndPlayerTurn();
+            StartPlayerTurn();
+        }
     }
 
     bool PlayerCanPlayCardOnARace()
@@ -635,6 +644,7 @@ public class GameLogic : MonoBehaviour
 
     void StartPlayerTurn()
     {
+        m_discardTurnsCount = 0;
         m_chosenHandCardIndex = -1;
         m_turnState = TurnState.StartingPlayerTurn;
         SetGenericBottomButtonText("Continue");
