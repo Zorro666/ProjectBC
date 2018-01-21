@@ -146,8 +146,6 @@ public class Race : MonoBehaviour
         int maxScoreValue = -1;
         BC.Player minScorePlayer = BC.Player.Unknown;
         int minScoreValue = 9999;
-        bool maxTie = false;
-        bool minTie = false;
         for (int playerIndex = 0; playerIndex < (int)BC.Player.Count; ++playerIndex)
         {
             int score = 0;
@@ -157,7 +155,6 @@ public class Race : MonoBehaviour
 
             if (score == maxScoreValue)
             {
-                maxTie = true;
                 maxScorePlayer = m_gamelogic.CurrentPlayer;
             }
 
@@ -165,12 +162,10 @@ public class Race : MonoBehaviour
             {
                 maxScoreValue = score;
                 maxScorePlayer = player;
-                maxTie = false;
             }
 
             if (score == minScoreValue)
             {
-                minTie = true;
                 minScorePlayer = m_gamelogic.CurrentPlayer;
             }
 
@@ -178,11 +173,10 @@ public class Race : MonoBehaviour
             {
                 minScoreValue = score;
                 minScorePlayer = player;
-                minTie = false;
             }
         }
-        Debug.Log("max " + maxScorePlayer + " " + maxScoreValue + " Tie " + maxTie);
-        Debug.Log("min " + minScorePlayer + " " + minScoreValue + " Tie " + minTie);
+        //Debug.Log("max " + maxScorePlayer + " " + maxScoreValue);
+        //Debug.Log("min " + minScorePlayer + " " + minScoreValue);
         if (m_state == State.Lowest)
             return minScorePlayer;
         if (m_state == State.Highest)
@@ -232,7 +226,7 @@ public class Race : MonoBehaviour
 
     public bool PlayCard(BC.Player player, Card card)
     {
-        Debug.Log(name + " PlayCard " + player + " " + card.Colour + " " + card.Value);
+        //Debug.Log(name + " PlayCard " + player + " " + card.Colour + " " + card.Value);
         if (m_state == State.Finished)
         {
             Debug.Log(name + " race is Finished");

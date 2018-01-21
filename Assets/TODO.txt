@@ -1,7 +1,7 @@
 Bugs
 
 High
-Wildcards: show wildcard cubes on the UI for both players
+Compute wildcard cubes for all players after a cup is won
 
 Medium
 Discard state : UI and logic for user to choose card : press discard (generic bottom button) : up to 4 cards

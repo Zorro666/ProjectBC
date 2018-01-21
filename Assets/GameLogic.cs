@@ -40,6 +40,7 @@ public class GameLogic : MonoBehaviour
     int m_frame;
     int m_cubesRemainingCount;
     int m_cubesTotalCount;
+    BC.Player[] m_cupOwner;
     Card[] m_fullDeck;
     Queue<Card> m_drawDeck;
     Queue<Card> m_discardDeck;
@@ -51,6 +52,8 @@ public class GameLogic : MonoBehaviour
     //TODO: make a Player class and store this data per Player
     Text[,] m_playerCubeCountsTexts;
     int[,] m_playerCubeCounts;
+    Text[] m_playerWildcardCubeCountTexts;
+    int[] m_playerWildcardCubeCounts;
     GameObject[] m_playerHandGOs;
     Image[,] m_playerCardBackgrounds;
     Text[,] m_playerCardValues;
@@ -158,7 +161,7 @@ public class GameLogic : MonoBehaviour
         var currentPlayerHand = m_currentPlayer + "Player";
         if (playerHandSource != currentPlayerHand)
             return;
-        Debug.Log("PlayerHandCardClicked source:" + source.name + " greatgrandparent:" + source.transform.parent.parent.name);
+        //Debug.Log("PlayerHandCardClicked source:" + source.name + " greatgrandparent:" + source.transform.parent.parent.name);
         var cardName = source.name;
         if (!cardName.StartsWith("Card", System.StringComparison.Ordinal))
         {
@@ -171,10 +174,10 @@ public class GameLogic : MonoBehaviour
             Debug.LogError("Invalid cardNumber " + cardNumber);
             return;
         }
-        int playerIndex = (int)m_currentPlayer;
         m_chosenHandCardIndex = cardNumber - 1;
-        var card = m_playerHands[playerIndex, m_chosenHandCardIndex];
-        Debug.Log("Selected card Colour: " + card.Colour + " Value: " + card.Value);
+        //int playerIndex = (int)m_currentPlayer;
+        //var card = m_playerHands[playerIndex, m_chosenHandCardIndex];
+        //Debug.Log("Selected card Colour: " + card.Colour + " Value: " + card.Value);
         m_turnState = TurnState.PlayCardOnRace;
         UpdateStatus();
     }
@@ -411,10 +414,10 @@ public class GameLogic : MonoBehaviour
                 var cubeCountText = playerCubesBackgroundRootName + (BC.CardCubeColour)cubeType;
                 var cubeCountGO = GameObject.Find(cubeCountText);
                 if (cubeCountGO == null)
-                    Debug.LogError("Can't find " + (BC.CardCubeColour)cubeType + " cube counts GameObject " + cubeCountText);
+                    Debug.LogError("Can't find " + (BC.CardCubeColour)cubeType + " cube count GameObject " + cubeCountText);
                 m_playerCubeCountsTexts[player, cubeType] = cubeCountGO.GetComponent<Text>();
                 if (m_playerCubeCountsTexts[player, cubeType] == null)
-                    Debug.LogError("Can't find " + (BC.CardCubeColour)cubeType + " cube counts UI Text Component");
+                    Debug.LogError("Can't find " + (BC.CardCubeColour)cubeType + " cube count UI Text Component");
 
                 var cupImageName = playerCupsRootName + (BC.CardCubeColour)cubeType;
                 var cupImageGO = GameObject.Find(cupImageName);
@@ -426,6 +429,14 @@ public class GameLogic : MonoBehaviour
 
                 m_playerCups[player, cubeType] = false;
             }
+            var wildcardCubeCountText = playerCubesBackgroundRootName + "White";
+            var wildcardCubeCountGO = GameObject.Find(wildcardCubeCountText);
+            if (wildcardCubeCountGO == null)
+                Debug.LogError("Can't find wildcard cube count GameObject " + wildcardCubeCountText);
+            m_playerWildcardCubeCountTexts[player] = wildcardCubeCountGO.GetComponent<Text>();
+            if (m_playerWildcardCubeCountTexts[player] == null)
+                Debug.LogError("Can't find wildcard cube count UI Text Component");
+
             var playerHandRootName = playerUIRootName + "Hand/";
             m_playerHandGOs[player] = GameObject.Find(playerHandRootName);
             if (m_playerHandGOs[player] == null)
@@ -475,16 +486,34 @@ public class GameLogic : MonoBehaviour
                 m_playerCubeCounts[player, cubeType] = 0;
                 m_playerCupImages[player, cubeType].enabled = false;
             }
+            m_playerWildcardCubeCounts[player] = 0;
             UpdateCubeCounts((BC.Player)player);
         }
+        for (int cupType = 0; cupType < GameLogic.CubeTypeCount; ++cupType)
+            m_cupOwner[cupType] = BC.Player.Unknown;
         StartPlayerTurn();
+    }
+
+    bool IsCupWon(BC.CardCubeColour cupColour)
+    {
+        return (m_cupOwner[(int)cupColour] != BC.Player.Unknown);
     }
 
     void AwardCupToPlayer(BC.Player player, BC.CardCubeColour cupColour)
     {
+        int playerIndex = (int)player;
+        int cupIndex = (int)cupColour;
+        if (IsCupWon(cupColour))
+        {
+            Debug.LogError("Cup has already been won " + cupColour + " by " + m_cupOwner[cupIndex]);
+            return;
+        }
         HideCup(cupColour);
         ShowCup(player, cupColour);
-        m_playerCups[(int)player, (int)cupColour] = true;
+        m_playerCups[playerIndex, cupIndex] = true;
+        var cubeCountToWin = m_cubeWinningCounts[cupIndex];
+        m_playerCubeCounts[playerIndex, cupIndex] -= cubeCountToWin;
+        m_cupOwner[cupIndex] = player;
     }
 
     void HideCup(BC.CardCubeColour cupColour)
@@ -510,14 +539,27 @@ public class GameLogic : MonoBehaviour
     void UpdateCubeCounts(BC.Player player)
     {
         int playerIndex = (int)player;
-        for (int cubeType = 0; cubeType < GameLogic.CubeTypeCount; ++cubeType)
+        for (int cubeIndex = 0; cubeIndex < GameLogic.CubeTypeCount; ++cubeIndex)
         {
-            int cubeValue = m_playerCubeCounts[playerIndex, cubeType];
-            m_playerCubeCountsTexts[playerIndex, cubeType].text = cubeValue.ToString();
-            var cubeCountToWin = m_cubeWinningCounts[cubeType];
+            int cubeValue = m_playerCubeCounts[playerIndex, cubeIndex];
+            var cubeCountToWin = m_cubeWinningCounts[cubeIndex];
+            BC.CardCubeColour cubeType = (BC.CardCubeColour)cubeIndex;
             if (cubeValue >= cubeCountToWin)
-                AwardCupToPlayer(player, (BC.CardCubeColour)cubeType);
+                AwardCupToPlayer(player, cubeType);
+
+            cubeValue = m_playerCubeCounts[playerIndex, cubeIndex];
+            if (IsCupWon(cubeType))
+            {
+                int numWildcardCubes = cubeValue / 3;
+                m_playerWildcardCubeCounts[playerIndex] += numWildcardCubes;
+                cubeValue -= (numWildcardCubes * 3);
+            }
+            m_playerCubeCounts[playerIndex, cubeIndex] = cubeValue;
+            cubeValue = m_playerCubeCounts[playerIndex, cubeIndex];
+            m_playerCubeCountsTexts[playerIndex, cubeIndex].text = cubeValue.ToString();
         }
+        int wildcardCubeCount = m_playerWildcardCubeCounts[playerIndex];
+        m_playerWildcardCubeCountTexts[playerIndex].text = wildcardCubeCount.ToString();
     }
 
     void InGame()
@@ -762,12 +804,15 @@ public class GameLogic : MonoBehaviour
 
         m_playerCubeCountsTexts = new Text[GameLogic.PlayerCount, GameLogic.CubeTypeCount];
         m_playerCubeCounts = new int[GameLogic.PlayerCount, GameLogic.CubeTypeCount];
+        m_playerWildcardCubeCountTexts = new Text[GameLogic.PlayerCount];
+        m_playerWildcardCubeCounts = new int[GameLogic.PlayerCount];
         m_playerHandGOs = new GameObject[GameLogic.PlayerCount];
         m_playerCardBackgrounds = new Image[GameLogic.PlayerCount, GameLogic.HandSize];
         m_playerCardValues = new Text[GameLogic.PlayerCount, GameLogic.HandSize];
         m_playerHands = new Card[GameLogic.PlayerCount, GameLogic.HandSize];
         m_playerCupImages = new Image[GameLogic.PlayerCount, GameLogic.CubeTypeCount];
         m_playerCups = new bool[GameLogic.PlayerCount, GameLogic.CubeTypeCount];
+        m_cupOwner = new BC.Player[GameLogic.CubeTypeCount];
 
         SetActiveGenericBottomButton(false);
     }
@@ -849,6 +894,7 @@ public class GameLogic : MonoBehaviour
             }
         }
         //TODO: count cubes in bag + races + players must match the totals
+        //TODO: validate player cube counts and cups won and cubes remaining and wildcards
         return allOk;
     }
 
