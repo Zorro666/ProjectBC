@@ -122,7 +122,7 @@ public class GameLogic : MonoBehaviour
 
     public void FinishRace(BC.Player winner, Race race)
     {
-        UpdateCubeCounts((BC.Player)winner);
+        UpdateCubeCounts();
         m_turnState = TurnState.FinishingRace;
         m_finishedRace = race;
         m_frame = 0;
@@ -487,8 +487,8 @@ public class GameLogic : MonoBehaviour
                 m_playerCupImages[player, cubeType].enabled = false;
             }
             m_playerWildcardCubeCounts[player] = 0;
-            UpdateCubeCounts((BC.Player)player);
         }
+        UpdateCubeCounts();
         for (int cupType = 0; cupType < GameLogic.CubeTypeCount; ++cupType)
             m_cupOwner[cupType] = BC.Player.Unknown;
         StartPlayerTurn();
@@ -536,7 +536,20 @@ public class GameLogic : MonoBehaviour
         return (cupsWonCount >= 3);
     }
 
-    void UpdateCubeCounts(BC.Player player)
+    void UpdateCubeCounts()
+    {
+        for (BC.Player player = BC.Player.First; player < BC.Player.Count; ++player)
+            AwardCupsToPlayer(player);
+
+        // Do wildcards after cups are awarded 
+        for (BC.Player player = BC.Player.First; player < BC.Player.Count; ++player)
+            UpdateWildcardCubesForPlayer(player);
+
+        for (BC.Player player = BC.Player.First; player < BC.Player.Count; ++player)
+            UpdateCubeCountsUIForPlayer(player);
+    }
+
+    void AwardCupsToPlayer(BC.Player player)
     {
         int playerIndex = (int)player;
         for (int cubeIndex = 0; cubeIndex < GameLogic.CubeTypeCount; ++cubeIndex)
@@ -545,17 +558,35 @@ public class GameLogic : MonoBehaviour
             var cubeCountToWin = m_cubeWinningCounts[cubeIndex];
             BC.CardCubeColour cubeType = (BC.CardCubeColour)cubeIndex;
             if (cubeValue >= cubeCountToWin)
+            {
                 AwardCupToPlayer(player, cubeType);
+            }
+        }
+    }
 
-            cubeValue = m_playerCubeCounts[playerIndex, cubeIndex];
+    void UpdateWildcardCubesForPlayer(BC.Player player)
+    {
+        int playerIndex = (int)player;
+        for (int cubeIndex = 0; cubeIndex < GameLogic.CubeTypeCount; ++cubeIndex)
+        {
+            BC.CardCubeColour cubeType = (BC.CardCubeColour)cubeIndex;
             if (IsCupWon(cubeType))
             {
+                var cubeValue = m_playerCubeCounts[playerIndex, cubeIndex];
                 int numWildcardCubes = cubeValue / 3;
                 m_playerWildcardCubeCounts[playerIndex] += numWildcardCubes;
                 cubeValue -= (numWildcardCubes * 3);
+                m_playerCubeCounts[playerIndex, cubeIndex] = cubeValue;
             }
-            m_playerCubeCounts[playerIndex, cubeIndex] = cubeValue;
-            cubeValue = m_playerCubeCounts[playerIndex, cubeIndex];
+        }
+    }
+
+    void UpdateCubeCountsUIForPlayer(BC.Player player)
+    {
+        int playerIndex = (int)player;
+        for (int cubeIndex = 0; cubeIndex < GameLogic.CubeTypeCount; ++cubeIndex)
+        {
+            var cubeValue = m_playerCubeCounts[playerIndex, cubeIndex];
             m_playerCubeCountsTexts[playerIndex, cubeIndex].text = cubeValue.ToString();
         }
         int wildcardCubeCount = m_playerWildcardCubeCounts[playerIndex];

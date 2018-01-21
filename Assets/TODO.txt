@@ -1,7 +1,6 @@
 Bugs
 
 High
-Compute wildcard cubes for all players after a cup is won
 
 Medium
 Discard state : UI and logic for user to choose card : press discard (generic bottom button) : up to 4 cards
@@ -18,3 +17,5 @@ Finish all the TODOs
 Drag'n'drop for playing cards
 Drop cards on race row instead of specific button
 Consider UNDO option after playing a card
+Make pretty graphics
+Add a testing framework : lots of tests could be done and would be helpful
