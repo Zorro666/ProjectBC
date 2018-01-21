@@ -15,3 +15,6 @@ Should really shuffle discard deck and then make it the draw deck
 Should make a Player class to store player specific values 
 Finish the validation TODOs
 Finish all the TODOs
+Drag'n'drop for playing cards
+Drop cards on race row instead of specific button
+Consider UNDO option after playing a card
