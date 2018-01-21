@@ -31,7 +31,8 @@ public class GameLogic : MonoBehaviour
     System.Random m_random;
     BC.CardCubeColour[] m_cubes;
     Color[] m_cardCubeColours;
-    int[] m_cubeCounts;
+    int[] m_cubeCurrentCounts;
+    int[] m_cubeStartingCounts;
     int[] m_cubeWinningCounts;
     GameState m_state;
     TurnState m_turnState;
@@ -267,6 +268,7 @@ public class GameLogic : MonoBehaviour
 
     void ExitFinishingGame()
     {
+        SetActiveGenericBottomButton(false);
         m_state = GameState.Initialising;
     }
 
@@ -362,19 +364,22 @@ public class GameLogic : MonoBehaviour
             --m_cubesRemainingCount;
         var cubeType = m_cubes[m_cubesRemainingCount];
         int cubeTypeIndex = (int)cubeType;
-        --m_cubeCounts[cubeTypeIndex];
-        if (m_cubeCounts[cubeTypeIndex] < 0)
+        --m_cubeCurrentCounts[cubeTypeIndex];
+        if (m_cubeCurrentCounts[cubeTypeIndex] < 0)
             Debug.LogError("Negative cubeCounts " + cubeType);
         return m_cubes[m_cubesRemainingCount];
     }
 
     void Initialise()
     {
+        for (int cubeType = 0; cubeType < GameLogic.CubeTypeCount; ++cubeType)
+            m_cubeCurrentCounts[cubeType] = m_cubeStartingCounts[cubeType];
+
         CreateFullDeck();
         var cubeIndex = 0;
         for (int cubeType = 0; cubeType < GameLogic.CubeTypeCount; ++cubeType)
         {
-            var count = m_cubeCounts[cubeType];
+            var count = m_cubeCurrentCounts[cubeType];
             for (int i = 0; i < count; ++i)
                 m_cubes[cubeIndex++] = (BC.CardCubeColour)cubeType;
         }
@@ -495,7 +500,7 @@ public class GameLogic : MonoBehaviour
 
     bool HasPlayerWon(BC.Player player)
     {
-        int cupsWonCount = 3;
+        int cupsWonCount = 0;
         for (int cupType = 0; cupType < GameLogic.CubeTypeCount; ++cupType)
             cupsWonCount += (m_playerCups[(int)player, (int)cupType] == true) ? 1 : 0;
 
@@ -610,7 +615,7 @@ public class GameLogic : MonoBehaviour
         for (int colour = 0; colour < (int)BC.CardCubeColour.Count; ++colour)
         {
             int[] cardValues = allCardValues[colour];
-            if (m_cubeCounts[colour] != cardValues.Length)
+            if (m_cubeCurrentCounts[colour] != cardValues.Length)
                 Debug.LogError((BC.CardCubeColour)colour + " CardValues length does not match cubeCounts");
             foreach (int v in cardValues)
             {
@@ -722,20 +727,20 @@ public class GameLogic : MonoBehaviour
     void Awake()
     {
         m_random = new System.Random();
-        m_cubeCounts = new int[GameLogic.CubeTypeCount];
-        m_cubeCounts[(int)BC.CardCubeColour.Grey] = 5;
-        m_cubeCounts[(int)BC.CardCubeColour.Blue] = 7;
-        m_cubeCounts[(int)BC.CardCubeColour.Green] = 9;
-        m_cubeCounts[(int)BC.CardCubeColour.Yellow] = 11;
-        m_cubeCounts[(int)BC.CardCubeColour.Red] = 13;
+        m_cubeCurrentCounts = new int[GameLogic.CubeTypeCount];
+        m_cubeStartingCounts = new int[GameLogic.CubeTypeCount];
+        m_cubeStartingCounts[(int)BC.CardCubeColour.Grey] = 5;
+        m_cubeStartingCounts[(int)BC.CardCubeColour.Blue] = 7;
+        m_cubeStartingCounts[(int)BC.CardCubeColour.Green] = 9;
+        m_cubeStartingCounts[(int)BC.CardCubeColour.Yellow] = 11;
+        m_cubeStartingCounts[(int)BC.CardCubeColour.Red] = 13;
+
         m_cubeWinningCounts = new int[GameLogic.CubeTypeCount];
-        m_cubeWinningCounts[(int)BC.CardCubeColour.Grey] = 3;
-        m_cubeWinningCounts[(int)BC.CardCubeColour.Blue] = 4;
-        m_cubeWinningCounts[(int)BC.CardCubeColour.Green] = 5;
-        m_cubeWinningCounts[(int)BC.CardCubeColour.Yellow] = 6;
-        m_cubeWinningCounts[(int)BC.CardCubeColour.Red] = 7;
+        for (int cubeType = 0; cubeType < GameLogic.CubeTypeCount; ++cubeType)
+            m_cubeWinningCounts[cubeType] = (m_cubeStartingCounts[cubeType] + 1 )/ 2;
+
         var numCubesTotal = 0;
-        foreach (int count in m_cubeCounts)
+        foreach (int count in m_cubeStartingCounts)
             numCubesTotal += count;
         CubesTotalCount = numCubesTotal;
 
@@ -837,10 +842,10 @@ public class GameLogic : MonoBehaviour
         }
         for (int cubeType = 0; cubeType < GameLogic.CubeTypeCount; ++cubeType)
         {
-            if (m_cubeCounts[cubeType] != cubeCounts[cubeType])
+            if (m_cubeCurrentCounts[cubeType] != cubeCounts[cubeType])
             {
                 allOk = false;
-                Debug.LogError("Cube count is incorrect " + (BC.CardCubeColour)cubeType + " " + cubeCounts[cubeType]);
+                Debug.LogError("Current Cube count is incorrect " + (BC.CardCubeColour)cubeType + " " + cubeCounts[cubeType]);
             }
         }
         //TODO: count cubes in bag + races + players must match the totals

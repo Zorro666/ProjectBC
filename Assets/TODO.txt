@@ -1,7 +1,6 @@
 Bugs
 
 High
-Detect winner of game (3 cups) : end game -> new game
 Wildcards: show wildcard cubes on the UI for both players
 
 Medium
@@ -13,3 +12,6 @@ Wildcards: work out the UI for how to use wildcards
 Low
 Make it clear to player which card they have chosen
 Should really shuffle discard deck and then make it the draw deck
+Should make a Player class to store player specific values 
+Finish the validation TODOs
+Finish all the TODOs
