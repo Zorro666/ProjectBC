@@ -22,7 +22,9 @@ public class GameLogic : MonoBehaviour
     {
         StartingPlayerTurn,
         PickCardFromHand,
-        DiscardCardsFromHand,
+        PickCardFromHandToDiscard,
+        DiscardSingleCard,
+        DiscardSelectedCardsFromHand,
         PlayCardOnRace,
         FinishingRace,
         FinishingGame
@@ -40,7 +42,9 @@ public class GameLogic : MonoBehaviour
     int m_frame;
     int m_cubesRemainingCount;
     int m_cubesTotalCount;
-    int m_discardTurnsCount;
+    int m_discardCardCount;
+    int[] m_cardsToDiscard;
+    bool m_playerAlreadyDiscarded;
     BC.Player[] m_cupOwner;
     Card[] m_fullDeck;
     Queue<Card> m_drawDeck;
@@ -137,8 +141,17 @@ public class GameLogic : MonoBehaviour
             case TurnState.StartingPlayerTurn:
                 ExitStartingPlayerTurn();
                 break;
-            case TurnState.DiscardCardsFromHand:
-                ExitDiscardCardsFromHand();
+            case TurnState.PickCardFromHandToDiscard:
+                if (m_chosenHandCardIndex != -1)
+                    Debug.LogError("ChosenHandIndex should be -1 " + m_chosenHandCardIndex);
+                else
+                    DiscardSelectedCardsFromHand();
+                break;
+            case TurnState.DiscardSingleCard:
+                DiscardSingleCard();
+                break;
+            case TurnState.DiscardSelectedCardsFromHand:
+                DiscardSelectedCardsFromHand();
                 break;
             case TurnState.FinishingRace:
                 ExitFinishingRace();
@@ -156,7 +169,8 @@ public class GameLogic : MonoBehaviour
     {
         if (m_state != GameState.InGame)
             return;
-        if ((m_turnState != TurnState.PickCardFromHand) && (m_turnState != TurnState.PlayCardOnRace))
+        if ((m_turnState != TurnState.PickCardFromHand) && (m_turnState != TurnState.PlayCardOnRace) && 
+            (m_turnState != TurnState.PickCardFromHandToDiscard) && (m_turnState != TurnState.DiscardSingleCard))
             return;
         var playerHandSource = source.transform.parent.parent.name;
         var currentPlayerHand = m_currentPlayer + "Player";
@@ -179,7 +193,14 @@ public class GameLogic : MonoBehaviour
         //int playerIndex = (int)m_currentPlayer;
         //var card = m_playerHands[playerIndex, m_chosenHandCardIndex];
         //Debug.Log("Selected card Colour: " + card.Colour + " Value: " + card.Value);
-        m_turnState = TurnState.PlayCardOnRace;
+        if (m_turnState == TurnState.PickCardFromHand)
+            m_turnState = TurnState.PlayCardOnRace;
+        else if (m_turnState == TurnState.PickCardFromHandToDiscard)
+        {
+            m_turnState = TurnState.DiscardSingleCard;
+            SetGenericBottomButtonText("Discard Card");
+            SetActiveGenericBottomButton(true);
+        }
         UpdateStatus();
     }
 
@@ -278,82 +299,76 @@ public class GameLogic : MonoBehaviour
 
     void ExitStartingPlayerTurn()
     {
+        m_chosenHandCardIndex = -1;
+        m_discardCardCount = 0;
+        for (int i = 0; i < 4; ++i)
+            m_cardsToDiscard[i] = -1;
+
         SetActiveGenericBottomButton(false);
         ShowHand(m_currentPlayer);
         if (PlayerCanPlayCardOnARace())
         {
             m_turnState = TurnState.PickCardFromHand;
-            m_discardTurnsCount = 0;
         }
         else
         {
-            m_turnState = TurnState.DiscardCardsFromHand;
-            SetGenericBottomButtonText("Discard 4 Cards");
+            m_turnState = TurnState.PickCardFromHandToDiscard;
+            SetGenericBottomButtonText("Discard " + m_discardCardCount + " Cards from Hand");
             SetActiveGenericBottomButton(true);
         }
         UpdateStatus();
     }
 
-    void ExitDiscardCardsFromHand()
+    void DiscardSingleCard()
     {
-        // Randomly choose 4 different cards to discard
-        const int numCardsToDiscard = 4;
-        int[] cardsToDiscard = new int[numCardsToDiscard];
-        int[] cardIndexes = new int[HandSize];
-
-        for (int c = 0; c < HandSize; ++c)
-            cardIndexes[c] = c;
-
-        int numCardsToChooseFrom = HandSize;
-        for (int i = 0; i < numCardsToDiscard; ++i)
-        {
-            var discardIndex = m_random.Next(numCardsToChooseFrom);
-            var cardIndex = 0;
-            var cardToDiscardIndex = -1;
-            for (int c = 0; c < HandSize; ++c)
-            {
-                if (cardIndexes[c] >= 0)
-                {
-                    if (cardIndex == discardIndex)
-                    {
-                        cardToDiscardIndex = c;
-                        cardIndexes[c] = -1;
-                        break;
-                    }
-                    ++cardIndex;
-                }
-            }
-            if (cardToDiscardIndex >= 0)
-            {
-                cardsToDiscard[i] = cardToDiscardIndex;
-            }
-            else
-            {
-                cardsToDiscard[i] = 0;
-                Debug.LogError("Invalid cardToDiscardIndex");
-            }
-            --numCardsToChooseFrom;
-        }
-
-        //TODO: move this logic into the state machine to support UI replacing the random discard card selection
+        int cardIndex = m_chosenHandCardIndex;
         int playerIndex = (int)m_currentPlayer;
-        for (int i = 0; i < numCardsToDiscard; ++i)
+        var card = m_playerHands[playerIndex, cardIndex];
+        Debug.Log("Discard[" + m_discardCardCount + "] Card Index " + cardIndex + " Card Colour " + card.Colour + " Value " + card.Value);
+        m_cardsToDiscard[m_discardCardCount] = cardIndex;
+        m_chosenHandCardIndex = -1;
+        ++m_discardCardCount;
+        if (m_discardCardCount == 4)
+            DiscardSelectedCardsFromHand();
+        else
         {
-            var cardIndex = cardsToDiscard[i];
-            Debug.Log("Discard Card[" + i + "] " + cardIndex);
+            SetGenericBottomButtonText("Discard " + m_discardCardCount + " Cards from Hand");
+            SetActiveGenericBottomButton(true);
+            m_turnState = TurnState.PickCardFromHandToDiscard;
+            UpdateStatus();
+        }
+    }
+
+    void DiscardSelectedCardsFromHand()
+   {
+        int playerIndex = (int)m_currentPlayer;
+        for (int i = 0; i < m_discardCardCount; ++i)
+        {
+            var cardIndex = m_cardsToDiscard[i];
+            if (cardIndex < 0)
+            {
+                Debug.LogError("Discard[" + i + "] Invalid cardIndex " + cardIndex);
+                continue;
+            }
             var card = m_playerHands[playerIndex, cardIndex];
+            Debug.Log("Discard[" + i + "] Card Colour " + card.Colour + " Value " + card.Value);
             DiscardCard(card);
             PlayerDrawNewCard(m_currentPlayer, cardIndex);
+            m_cardsToDiscard[i] = -1;
         }
+        m_discardCardCount = 0;
+
         //check if player can still play a card and let them play it
-        ++m_discardTurnsCount;
-        Debug.Log("DiscardTurnsCount " + m_discardTurnsCount);
-        if (m_discardTurnsCount < 2)
-            ExitStartingPlayerTurn();
-        else
+        Debug.Log("PlayerAlreadyDiscarded " + m_playerAlreadyDiscarded);
+        if (m_playerAlreadyDiscarded)
         {
             EndPlayerTurn();
             StartPlayerTurn();
+        }
+        else
+        {
+            m_playerAlreadyDiscarded = true;
+            ExitStartingPlayerTurn();
         }
     }
 
@@ -644,7 +659,7 @@ public class GameLogic : MonoBehaviour
 
     void StartPlayerTurn()
     {
-        m_discardTurnsCount = 0;
+        m_playerAlreadyDiscarded = false;
         m_chosenHandCardIndex = -1;
         m_turnState = TurnState.StartingPlayerTurn;
         SetGenericBottomButtonText("Continue");
@@ -670,11 +685,14 @@ public class GameLogic : MonoBehaviour
             case TurnState.PickCardFromHand:
                 StatusText.text = "Choose a Card to Play";
                 break;
-            case TurnState.DiscardCardsFromHand:
-                StatusText.text = "No card can be Played. Press Discard to Contiue";
-                break;
             case TurnState.PlayCardOnRace:
                 StatusText.text = "Choose a Race to Play on";
+                break;
+            case TurnState.PickCardFromHandToDiscard:
+                StatusText.text = "No card can be Played. Select Card to Discard";
+                break;
+            case TurnState.DiscardSingleCard:
+                StatusText.text = "Press Discard to Discard Card";
                 break;
             case TurnState.FinishingRace:
                 StatusText.text = m_finishedRace.Winner + " Player Won the Race";
@@ -842,6 +860,8 @@ public class GameLogic : MonoBehaviour
         m_drawDeck = new Queue<Card>();
         m_discardDeck = new Queue<Card>();
         m_currentPlayer = BC.Player.Unknown;
+
+        m_cardsToDiscard = new int[4];
 
         m_playerCubeCountsTexts = new Text[GameLogic.PlayerCount, GameLogic.CubeTypeCount];
         m_playerCubeCounts = new int[GameLogic.PlayerCount, GameLogic.CubeTypeCount];
