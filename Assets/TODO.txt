@@ -1,20 +1,19 @@
 Bugs
 
 High
+Highlight which sides of races i.e. PlayCard buttons the player can play on 
+Detect when wildcards could be used to win a cup : make "Use Wildcards" button appear for user to choose to press
 
 Medium
-Discard state: UI to clearly show which cards have already been selected for discard
-Discard state: UI handle selection and de-selection of cards from hand for up to 4 cards then press only "Discard Button" once
 Wildcards: work out the UI for how to use wildcards
 
 Low
-Make it clear to player which card they have chosen
-Should really shuffle discard deck and then make it the draw deck
 Should make a Player class to store player specific values 
+Should really shuffle discard deck and then make it the draw deck
+Add a testing framework : lots of tests could be done and would be helpful
 Finish the validation TODOs
 Finish all the TODOs
 Drag'n'drop for playing cards
 Drop cards on race row instead of specific button
 Consider UNDO option after playing a card
 Make pretty graphics
-Add a testing framework : lots of tests could be done and would be helpful
