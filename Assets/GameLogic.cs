@@ -22,9 +22,7 @@ public class GameLogic : MonoBehaviour
     {
         StartingPlayerTurn,
         PickCardFromHand,
-        PickCardFromHandToDiscard,
-        DiscardSingleCard,
-        DiscardSelectedCardsFromHand,
+        PickCardsFromHandToDiscard,
         PlayCardOnRace,
         FinishingRace,
         FinishingGame
@@ -42,8 +40,8 @@ public class GameLogic : MonoBehaviour
     int m_frame;
     int m_cubesRemainingCount;
     int m_cubesTotalCount;
-    int m_discardCardCount;
-    int[] m_cardsToDiscard;
+    int m_chosenHandCardCount;
+    int[] m_chosenHandCards;
     bool m_playerAlreadyDiscarded;
     BC.Player[] m_cupOwner;
     Card[] m_fullDeck;
@@ -51,8 +49,8 @@ public class GameLogic : MonoBehaviour
     Queue<Card> m_discardDeck;
     BC.Player m_roundWinner;
     BC.Player m_currentPlayer;
-    int m_chosenHandCardIndex;
     Race m_finishedRace;
+    int m_maxNumCardsToSelectFromHand;
 
     //TODO: make a Player class and store this data per Player
     Text[,] m_playerCubeCountsTexts;
@@ -60,6 +58,7 @@ public class GameLogic : MonoBehaviour
     Text[] m_playerWildcardCubeCountTexts;
     int[] m_playerWildcardCubeCounts;
     GameObject[] m_playerHandGOs;
+    Image[,] m_playerCardOutlines;
     Image[,] m_playerCardBackgrounds;
     Text[,] m_playerCardValues;
     Card[,] m_playerHands;
@@ -141,16 +140,7 @@ public class GameLogic : MonoBehaviour
             case TurnState.StartingPlayerTurn:
                 ExitStartingPlayerTurn();
                 break;
-            case TurnState.PickCardFromHandToDiscard:
-                if (m_chosenHandCardIndex != -1)
-                    Debug.LogError("ChosenHandIndex should be -1 " + m_chosenHandCardIndex);
-                else
-                    DiscardSelectedCardsFromHand();
-                break;
-            case TurnState.DiscardSingleCard:
-                DiscardSingleCard();
-                break;
-            case TurnState.DiscardSelectedCardsFromHand:
+            case TurnState.PickCardsFromHandToDiscard:
                 DiscardSelectedCardsFromHand();
                 break;
             case TurnState.FinishingRace:
@@ -160,7 +150,7 @@ public class GameLogic : MonoBehaviour
                 ExitFinishingGame();
                 break;
             default:
-                Debug.Log("Unknown m_turnState: " + m_turnState);
+                Debug.LogError("Unknown m_turnState: " + m_turnState);
                 break;
         }
     }
@@ -169,8 +159,8 @@ public class GameLogic : MonoBehaviour
     {
         if (m_state != GameState.InGame)
             return;
-        if ((m_turnState != TurnState.PickCardFromHand) && (m_turnState != TurnState.PlayCardOnRace) && 
-            (m_turnState != TurnState.PickCardFromHandToDiscard) && (m_turnState != TurnState.DiscardSingleCard))
+        if ((m_turnState != TurnState.PickCardFromHand) && (m_turnState != TurnState.PlayCardOnRace) &&
+            (m_turnState != TurnState.PickCardsFromHandToDiscard))
             return;
         var playerHandSource = source.transform.parent.parent.name;
         var currentPlayerHand = m_currentPlayer + "Player";
@@ -189,17 +179,79 @@ public class GameLogic : MonoBehaviour
             Debug.LogError("Invalid cardNumber " + cardNumber);
             return;
         }
-        m_chosenHandCardIndex = cardNumber - 1;
+        int oldChosenCardIndex = m_chosenHandCards[0];
+        int newChosenCardIndex = cardNumber - 1;
+        // Deselect card if already selected
+        for (int i = 0; i < m_maxNumCardsToSelectFromHand; ++i)
+        {
+            if ((m_chosenHandCards[i] >= 0) && (m_chosenHandCards[i] == newChosenCardIndex))
+            {
+                DeSelectCard(m_currentPlayer, newChosenCardIndex);
+                m_chosenHandCards[i] = -1;
+                newChosenCardIndex = -1;
+            }
+        }
+        // Single select : deselect the previous card
+        if ((m_maxNumCardsToSelectFromHand == 1) && (oldChosenCardIndex >= 0))
+        {
+            DeSelectCard(m_currentPlayer, oldChosenCardIndex);
+        }
+
+        // Remove any -1 entries
+        for (int i = 0; i < m_maxNumCardsToSelectFromHand; ++i)
+        {
+            if (m_chosenHandCards[i] == -1)
+            {
+                for (int j = i; j < m_maxNumCardsToSelectFromHand-1; ++j)
+                    m_chosenHandCards[j] = m_chosenHandCards[j+1];
+                m_chosenHandCards[m_maxNumCardsToSelectFromHand - 1] = -1;
+            }
+        }
+
+        // Multi-select : stop when reach the limit
+        if ((m_maxNumCardsToSelectFromHand > 1) && (m_chosenHandCardCount == m_maxNumCardsToSelectFromHand))
+            newChosenCardIndex = -1;
+
+        // Select new card
+        if (newChosenCardIndex >= 0)
+        {
+            SelectCard(m_currentPlayer, newChosenCardIndex);
+            // If new card is selected move the selected cards along and add to position 0
+            for (int i = m_maxNumCardsToSelectFromHand-1; i > 0; --i)
+                m_chosenHandCards[i] = m_chosenHandCards[i-1];
+            m_chosenHandCards[0] = newChosenCardIndex;
+        }
+
+        // Count how many chosen cards
+        m_chosenHandCardCount = 0;
+        for (int i = 0; i < m_maxNumCardsToSelectFromHand; ++i)
+        {
+            if (m_chosenHandCards[i] != -1)
+                ++m_chosenHandCardCount;
+        }
+
+        //Debug.Log("ChosenHandCardCount:" + m_chosenHandCardCount);
+        for (int i = 0; i < m_maxNumCardsToSelectFromHand; ++i)
+        {
+            //Debug.Log("ChosenCards[" + i + "] " + m_chosenHandCards[i]);
+        }
+
         //int playerIndex = (int)m_currentPlayer;
         //var card = m_playerHands[playerIndex, m_chosenHandCardIndex];
         //Debug.Log("Selected card Colour: " + card.Colour + " Value: " + card.Value);
-        if (m_turnState == TurnState.PickCardFromHand)
-            m_turnState = TurnState.PlayCardOnRace;
-        else if (m_turnState == TurnState.PickCardFromHandToDiscard)
+        switch (m_turnState)
         {
-            m_turnState = TurnState.DiscardSingleCard;
-            SetGenericBottomButtonText("Discard Card");
-            SetActiveGenericBottomButton(true);
+            case TurnState.PickCardFromHand:
+                if (newChosenCardIndex != -1)
+                    m_turnState = TurnState.PlayCardOnRace;
+                break;
+            case TurnState.PlayCardOnRace:
+                if (newChosenCardIndex == -1)
+                    m_turnState = TurnState.PickCardFromHand;
+                break;
+            case TurnState.PickCardsFromHandToDiscard:
+                DiscardSingleCard();
+                break;
         }
         UpdateStatus();
     }
@@ -229,7 +281,7 @@ public class GameLogic : MonoBehaviour
 
         //int cardIndex = m_random.Next(GameLogic.HandSize);
         int playerIndex = (int)m_currentPlayer;
-        var cardIndex = m_chosenHandCardIndex;
+        var cardIndex = m_chosenHandCards[0];
         if ((cardIndex < 0) || (cardIndex >= HandSize))
         {
             Debug.LogError("PlayCard invalid cardIndex " + cardIndex);
@@ -244,7 +296,7 @@ public class GameLogic : MonoBehaviour
         }
 
         HideHands();
-        m_chosenHandCardIndex = -1;
+        ResetChosenHandCards();
         if (!validCard)
             DiscardCard(card);
         PlayerDrawNewCard(m_currentPlayer, cardIndex);
@@ -297,23 +349,29 @@ public class GameLogic : MonoBehaviour
         m_state = GameState.Initialising;
     }
 
+    void ResetChosenHandCards()
+    {
+        m_chosenHandCardCount = 0;
+        for (int i = 0; i < 4; ++i)
+            m_chosenHandCards[i] = -1;
+    }
+
     void ExitStartingPlayerTurn()
     {
-        m_chosenHandCardIndex = -1;
-        m_discardCardCount = 0;
-        for (int i = 0; i < 4; ++i)
-            m_cardsToDiscard[i] = -1;
+        ResetChosenHandCards();
 
         SetActiveGenericBottomButton(false);
         ShowHand(m_currentPlayer);
         if (PlayerCanPlayCardOnARace())
         {
             m_turnState = TurnState.PickCardFromHand;
+            m_maxNumCardsToSelectFromHand = 1;
         }
         else
         {
-            m_turnState = TurnState.PickCardFromHandToDiscard;
-            SetGenericBottomButtonText("Discard " + m_discardCardCount + " Cards from Hand");
+            m_maxNumCardsToSelectFromHand = 4;
+            m_turnState = TurnState.PickCardsFromHandToDiscard;
+            SetGenericBottomButtonText("Discard " + m_chosenHandCardCount + " Cards from Hand");
             SetActiveGenericBottomButton(true);
         }
         UpdateStatus();
@@ -321,30 +379,27 @@ public class GameLogic : MonoBehaviour
 
     void DiscardSingleCard()
     {
-        int cardIndex = m_chosenHandCardIndex;
-        int playerIndex = (int)m_currentPlayer;
-        var card = m_playerHands[playerIndex, cardIndex];
-        Debug.Log("Discard[" + m_discardCardCount + "] Card Index " + cardIndex + " Card Colour " + card.Colour + " Value " + card.Value);
-        m_cardsToDiscard[m_discardCardCount] = cardIndex;
-        m_chosenHandCardIndex = -1;
-        ++m_discardCardCount;
-        if (m_discardCardCount == 4)
-            DiscardSelectedCardsFromHand();
-        else
+/*
+        int cardIndex = m_chosenHandCards[0];
+        if (cardIndex >= 0)
         {
-            SetGenericBottomButtonText("Discard " + m_discardCardCount + " Cards from Hand");
-            SetActiveGenericBottomButton(true);
-            m_turnState = TurnState.PickCardFromHandToDiscard;
-            UpdateStatus();
+            int playerIndex = (int)m_currentPlayer;
+            var card = m_playerHands[playerIndex, cardIndex];
+            Debug.Log("Discard[" + m_chosenHandCardCount + "] Card Index " + cardIndex + " Card Colour " + card.Colour + " Value " + card.Value);
         }
+*/
+        SetGenericBottomButtonText("Discard " + m_chosenHandCardCount + " Cards from Hand");
+        SetActiveGenericBottomButton(true);
+        m_turnState = TurnState.PickCardsFromHandToDiscard;
+        UpdateStatus();
     }
 
     void DiscardSelectedCardsFromHand()
-   {
+    {
         int playerIndex = (int)m_currentPlayer;
-        for (int i = 0; i < m_discardCardCount; ++i)
+        for (int i = 0; i < m_chosenHandCardCount; ++i)
         {
-            var cardIndex = m_cardsToDiscard[i];
+            var cardIndex = m_chosenHandCards[i];
             if (cardIndex < 0)
             {
                 Debug.LogError("Discard[" + i + "] Invalid cardIndex " + cardIndex);
@@ -354,9 +409,9 @@ public class GameLogic : MonoBehaviour
             Debug.Log("Discard[" + i + "] Card Colour " + card.Colour + " Value " + card.Value);
             DiscardCard(card);
             PlayerDrawNewCard(m_currentPlayer, cardIndex);
-            m_cardsToDiscard[i] = -1;
+            m_chosenHandCards[i] = -1;
         }
-        m_discardCardCount = 0;
+        m_chosenHandCardCount = 0;
 
         //check if player can still play a card and let them play it
         Debug.Log("PlayerAlreadyDiscarded " + m_playerAlreadyDiscarded);
@@ -469,11 +524,19 @@ public class GameLogic : MonoBehaviour
             {
                 int cardIndex = card + 1;
                 var playerCardRootName = playerHandRootName + "Card" + cardIndex.ToString() + "/";
+                var playerCardOutlineGO = GameObject.Find(playerCardRootName);
+                if (playerCardOutlineGO == null)
+                    Debug.LogError("Can't find PlayerCardOutlineGO " + playerCardRootName);
+                m_playerCardOutlines[player, card] = playerCardOutlineGO.GetComponent<Image>();
+                if (m_playerCardOutlines[player, card] == null)
+                    Debug.LogError("Can't find Player " + (BC.Player)player + " Card[" + cardIndex + " Outline Image " + playerCardRootName);
+
                 var playerCardBackgroundName = playerCardRootName + "Background";
                 var playerCardBackgroundGO = GameObject.Find(playerCardBackgroundName);
                 if (playerCardBackgroundGO == null)
                     Debug.LogError("Can't find PlayerCardBackgroundGO " + playerCardBackgroundName);
                 m_playerCardBackgrounds[player, card] = playerCardBackgroundGO.GetComponent<Image>();
+
                 var playerCardValueName = playerCardBackgroundName + "/Value";
                 var playerCardValueGO = GameObject.Find(playerCardValueName);
                 if (playerCardValueGO == null)
@@ -497,7 +560,7 @@ public class GameLogic : MonoBehaviour
             race.NewGame();
         m_frame = 0;
         m_finishedRace = null;
-        m_chosenHandCardIndex = -1;
+        ResetChosenHandCards();
         m_currentPlayer = (BC.Player)m_random.Next(GameLogic.PlayerCount);
         m_roundWinner = BC.Player.Unknown;
 
@@ -659,8 +722,9 @@ public class GameLogic : MonoBehaviour
 
     void StartPlayerTurn()
     {
+        m_maxNumCardsToSelectFromHand = 1;
         m_playerAlreadyDiscarded = false;
-        m_chosenHandCardIndex = -1;
+        ResetChosenHandCards();
         m_turnState = TurnState.StartingPlayerTurn;
         SetGenericBottomButtonText("Continue");
         SetActiveGenericBottomButton(true);
@@ -688,11 +752,8 @@ public class GameLogic : MonoBehaviour
             case TurnState.PlayCardOnRace:
                 StatusText.text = "Choose a Race to Play on";
                 break;
-            case TurnState.PickCardFromHandToDiscard:
-                StatusText.text = "No card can be Played. Select Card to Discard";
-                break;
-            case TurnState.DiscardSingleCard:
-                StatusText.text = "Press Discard to Discard Card";
+            case TurnState.PickCardsFromHandToDiscard:
+                StatusText.text = "No card can be Played. Select Cards to Discard";
                 break;
             case TurnState.FinishingRace:
                 StatusText.text = m_finishedRace.Winner + " Player Won the Race";
@@ -809,6 +870,7 @@ public class GameLogic : MonoBehaviour
         var colour = CardCubeColour(card.Colour);
 
         m_playerCardValues[playerIndex, cardIndex].text = text;
+        m_playerCardOutlines[playerIndex, cardIndex].color = Color.black;
         m_playerCardBackgrounds[playerIndex, cardIndex].color = colour;
         var textColour = (card.Colour == BC.CardCubeColour.Yellow) ? Color.black : Color.white;
         m_playerCardValues[playerIndex, cardIndex].color = textColour;
@@ -838,7 +900,7 @@ public class GameLogic : MonoBehaviour
 
         m_cubeWinningCounts = new int[GameLogic.CubeTypeCount];
         for (int cubeType = 0; cubeType < GameLogic.CubeTypeCount; ++cubeType)
-            m_cubeWinningCounts[cubeType] = (m_cubeStartingCounts[cubeType] + 1 )/ 2;
+            m_cubeWinningCounts[cubeType] = (m_cubeStartingCounts[cubeType] + 1) / 2;
 
         var numCubesTotal = 0;
         foreach (int count in m_cubeStartingCounts)
@@ -861,7 +923,7 @@ public class GameLogic : MonoBehaviour
         m_discardDeck = new Queue<Card>();
         m_currentPlayer = BC.Player.Unknown;
 
-        m_cardsToDiscard = new int[4];
+        m_chosenHandCards = new int[4];
 
         m_playerCubeCountsTexts = new Text[GameLogic.PlayerCount, GameLogic.CubeTypeCount];
         m_playerCubeCounts = new int[GameLogic.PlayerCount, GameLogic.CubeTypeCount];
@@ -869,6 +931,7 @@ public class GameLogic : MonoBehaviour
         m_playerWildcardCubeCounts = new int[GameLogic.PlayerCount];
         m_playerHandGOs = new GameObject[GameLogic.PlayerCount];
         m_playerCardBackgrounds = new Image[GameLogic.PlayerCount, GameLogic.HandSize];
+        m_playerCardOutlines = new Image[GameLogic.PlayerCount, GameLogic.HandSize];
         m_playerCardValues = new Text[GameLogic.PlayerCount, GameLogic.HandSize];
         m_playerHands = new Card[GameLogic.PlayerCount, GameLogic.HandSize];
         m_playerCupImages = new Image[GameLogic.PlayerCount, GameLogic.CubeTypeCount];
@@ -968,7 +1031,27 @@ public class GameLogic : MonoBehaviour
     {
         GenericBottomButton.SetActive(enable);
     }
-    
+
+    void DeSelectCard(BC.Player player, int cardIndex)
+    {
+        if (cardIndex < 0)
+        {
+            Debug.LogError("Invalid cardIndex " + cardIndex);
+            return;
+        }
+        m_playerCardOutlines[(int)player, cardIndex].color = Color.black;
+    }
+
+    void SelectCard(BC.Player player, int cardIndex)
+    {
+        if (cardIndex < 0)
+        {
+            Debug.LogError("Invalid cardIndex " + cardIndex);
+            return;
+        }
+        m_playerCardOutlines[(int)player, cardIndex].color = Color.white;
+    }
+
     void Update() 
     {
         switch (m_state)
