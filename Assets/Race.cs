@@ -121,6 +121,8 @@ public class Race : MonoBehaviour
         if (m_state == State.Finished)
         {
             m_background.color = m_gamelogic.RaceFinishedColour;
+            foreach (Image cubeImage in m_cubeImages)
+                cubeImage.color = m_gamelogic.RaceFinishedColour;
             return;
         }
 
