@@ -99,6 +99,11 @@ public class Race : MonoBehaviour
         return canPlayCard;
     }
 
+    public void ResetPlayCardButtons()
+    {
+        Debug.LogWarning("TODO");
+    }
+
     public void StartRace()
     {
         for (int i = 0; i < m_cardsPlayed.Length; ++i)
