@@ -253,6 +253,10 @@ public class GameLogic : MonoBehaviour
                 DiscardSingleCard();
                 break;
         }
+        if ((m_turnState == TurnState.PickCardFromHand) || (m_turnState == TurnState.PlayCardOnRace))
+        {
+            ComputeWhatRacesCanBePlayedOn();
+        }
         UpdateStatus();
     }
 
@@ -438,6 +442,25 @@ public class GameLogic : MonoBehaviour
                 canPlayCard |= race.CanPlayCard(card);
         }
         return canPlayCard;
+    }
+
+    void ResetAllPlayCardButtons()
+    {
+        foreach (var race in m_races)
+            race.ResetPlayCardButtons();
+    }
+
+    void ComputeWhatRacesCanBePlayedOn()
+    {
+        int cardIndex = m_chosenHandCards[0];
+        if (cardIndex < 0)
+        {
+            ResetAllPlayCardButtons();
+            return;
+        }
+        var card = m_playerHands[(int)m_currentPlayer, cardIndex];
+        foreach (var race in m_races)
+            race.SetPlayCardButtons(card);
     }
 
     public BC.CardCubeColour NextCube()
@@ -728,6 +751,7 @@ public class GameLogic : MonoBehaviour
         m_turnState = TurnState.StartingPlayerTurn;
         SetGenericBottomButtonText("Continue");
         SetActiveGenericBottomButton(true);
+        ResetAllPlayCardButtons();
         UpdateStatus();
     }
 

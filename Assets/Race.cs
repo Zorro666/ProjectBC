@@ -12,6 +12,7 @@ public class Race : MonoBehaviour
 
     public int NumberOfCubes;
 
+    GameObject[] m_playCardOutlineGOs;
     Image m_background;
     Image[] m_cubeImages;
     GameLogic m_gamelogic;
@@ -31,6 +32,7 @@ public class Race : MonoBehaviour
 
     void Awake()
     {
+        m_playCardOutlineGOs = new GameObject[(int)BC.Player.Count];
         m_cubeImages = new Image[NumberOfCubes];
         m_state = State.Finished;
         m_cards = new Card[(int)BC.Player.Count, NumberOfCubes];
@@ -81,6 +83,10 @@ public class Race : MonoBehaviour
                     Debug.LogError("Can't find PlayedCardsValueGO " + playedCardsValueName);
                 m_playedCardsValue[player, j] = playedCardsValueGO.GetComponent<Text>();
             }
+            var playCardOutlineName = raceCardName + "PlayCard" + (BC.Player)player;
+            m_playCardOutlineGOs[player] = GameObject.Find(playCardOutlineName);
+            if (m_playCardOutlineGOs[player] == null)
+                Debug.LogError("Can't find PlayCardOutline for Player " + player + " " + playCardOutlineName);
         }
     }
 
@@ -97,6 +103,22 @@ public class Race : MonoBehaviour
             canPlayCard |= (m_cardsRemaining[playerIndex, cardColour] > 0);
         }
         return canPlayCard;
+    }
+
+    public void ResetPlayCardButtons()
+    {
+        foreach (var outline in m_playCardOutlineGOs)
+            outline.SetActive(false);
+    }
+
+    public void SetPlayCardButtons(Card card)
+    {
+        int cardColour = (int)card.Colour;
+        for (int playerIndex = 0; playerIndex < (int)BC.Player.Count; ++playerIndex)
+        {
+            bool canPlayCard = (m_cardsRemaining[playerIndex, cardColour] > 0);
+            m_playCardOutlineGOs[playerIndex].SetActive(canPlayCard);
+        }
     }
 
     public void StartRace()
