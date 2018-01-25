@@ -4,7 +4,7 @@ High
 Detect when wildcards could be used to win a cup : make "Use Wildcards" button appear for user to choose to press
 
 Medium
-Wildcards: work out the UI for how to use wildcards
+Wildcards: wildcard button : then click on the unclaimed cup to win it
 
 Low
 Should make a Player class to store player specific values 
