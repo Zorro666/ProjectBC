@@ -1,7 +1,6 @@
 Bugs
 
 High
-Highlight which sides of races i.e. PlayCard buttons the player can play on 
 Detect when wildcards could be used to win a cup : make "Use Wildcards" button appear for user to choose to press
 
 Medium

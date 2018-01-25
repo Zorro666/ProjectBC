@@ -30,6 +30,7 @@ public class GameLogic : MonoBehaviour
 
     System.Random m_random;
     BC.CardCubeColour[] m_cubes;
+    GameObject[] m_unclaimedCupGOs;
     Color[] m_cardCubeColours;
     int[] m_cubeCurrentCounts;
     int[] m_cubeStartingCounts;
@@ -301,6 +302,7 @@ public class GameLogic : MonoBehaviour
 
         HideHands();
         ResetChosenHandCards();
+        ResetAllPlayCardButtons();
         if (!validCard)
             DiscardCard(card);
         PlayerDrawNewCard(m_currentPlayer, cardIndex);
@@ -569,10 +571,25 @@ public class GameLogic : MonoBehaviour
                     Debug.LogError("Can't find Player " + (BC.Player)player + " Card[" + cardIndex + " Value Text " + playerCardValueName);
             }
         }
+        var unclaimedCupRootName = gameBoardUIRootName + "CupsBackground/";
+        for (int cupIndex = 0; cupIndex < GameLogic.CubeTypeCount; ++cupIndex)
+        {
+            var unclaimedCupName = unclaimedCupRootName + (BC.CardCubeColour)cupIndex;
+            m_unclaimedCupGOs[cupIndex] = GameObject.Find(unclaimedCupName);
+            if (m_unclaimedCupGOs[cupIndex] == null)
+                Debug.LogError("Can't find cup " + (BC.CardCubeColour)cupIndex + " " + unclaimedCupName);
+        }
+    }
+
+    void ResetUnclaimedCups()
+    {
+        foreach (var cupGO in m_unclaimedCupGOs)
+            cupGO.SetActive(true);
     }
 
     void NewGame()
     {
+        ResetUnclaimedCups();
         SetActiveGenericBottomButton(false);
         CreateDrawDeck();
         ShuffleDrawDeck();
@@ -624,6 +641,7 @@ public class GameLogic : MonoBehaviour
         var cubeCountToWin = m_cubeWinningCounts[cupIndex];
         m_playerCubeCounts[playerIndex, cupIndex] -= cubeCountToWin;
         m_cupOwner[cupIndex] = player;
+        m_unclaimedCupGOs[cupIndex].SetActive(false);
     }
 
     void HideCup(BC.CardCubeColour cupColour)
@@ -961,6 +979,7 @@ public class GameLogic : MonoBehaviour
         m_playerCupImages = new Image[GameLogic.PlayerCount, GameLogic.CubeTypeCount];
         m_playerCups = new bool[GameLogic.PlayerCount, GameLogic.CubeTypeCount];
         m_cupOwner = new BC.Player[GameLogic.CubeTypeCount];
+        m_unclaimedCupGOs = new GameObject[GameLogic.CubeTypeCount];
 
         SetActiveGenericBottomButton(false);
     }
