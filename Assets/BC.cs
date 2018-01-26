@@ -9,6 +9,7 @@ namespace BC
         Green = 2,
         Yellow = 3,
         Red = 4,
+        First = CardCubeColour.Grey,
         Count = CardCubeColour.Red + 1
     }
 
