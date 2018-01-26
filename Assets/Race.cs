@@ -199,8 +199,8 @@ public class Race : MonoBehaviour
                 minScorePlayer = player;
             }
         }
-        //Debug.Log("max " + maxScorePlayer + " " + maxScoreValue);
-        //Debug.Log("min " + minScorePlayer + " " + minScoreValue);
+        Debug.Log("max " + maxScorePlayer + " " + maxScoreValue + " CurrentPlayer:" + m_gamelogic.CurrentPlayer);
+        Debug.Log("min " + minScorePlayer + " " + minScoreValue + " CurrentPlayer:" + m_gamelogic.CurrentPlayer);
         if (m_state == State.Lowest)
             return minScorePlayer;
         if (m_state == State.Highest)

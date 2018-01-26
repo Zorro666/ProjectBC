@@ -8,7 +8,6 @@ public class GameLogic : MonoBehaviour
     public Color RaceHighestColour;
     public Color RaceFinishedColour;
     public Text StatusText;
-    public GameObject GenericBottomButton;
 
     enum GameState
     {
@@ -26,7 +25,7 @@ public class GameLogic : MonoBehaviour
         PlayCardOnRace,
         FinishingRace,
         FinishingGame,
-        ClaimWildcardCup
+        EndingPlayerTurn
     }
 
     System.Random m_random;
@@ -52,6 +51,7 @@ public class GameLogic : MonoBehaviour
     Queue<Card> m_discardDeck;
     BC.Player m_roundWinner;
     BC.Player m_currentPlayer;
+    BC.Player m_lastRaceWinner;
     Race m_finishedRace;
     int m_maxNumCardsToSelectFromHand;
 
@@ -69,6 +69,7 @@ public class GameLogic : MonoBehaviour
     Image[,] m_playerCupImages;
     Text[,] m_playerCupValues;
     bool[,] m_playerCups;
+    GameObject[] m_playerGenericButtons;
 
     static public int CubeTypeCount
     {
@@ -139,11 +140,12 @@ public class GameLogic : MonoBehaviour
         UpdateCubeCounts();
         m_turnState = TurnState.FinishingRace;
         m_finishedRace = race;
+        m_lastRaceWinner = m_finishedRace.Winner;
         m_frame = 0;
         UpdateStatus();
     }
 
-    public void GenericBottomButtonClicked()
+    public void PlayerGenericButtonClicked()
     {
         switch (m_turnState)
         {
@@ -158,6 +160,9 @@ public class GameLogic : MonoBehaviour
                 break;
             case TurnState.FinishingGame:
                 ExitFinishingGame();
+                break;
+            case TurnState.EndingPlayerTurn:
+                ExitEndingPlayerTurn();
                 break;
             default:
                 Debug.LogError("Unknown m_turnState: " + m_turnState);
@@ -318,7 +323,6 @@ public class GameLogic : MonoBehaviour
         if (m_finishedRace == null)
         {
             EndPlayerTurn();
-            StartPlayerTurn();
         }
     }
 
@@ -377,7 +381,7 @@ public class GameLogic : MonoBehaviour
 
     void ExitFinishingRace()
     {
-        SetActiveGenericBottomButton(false);
+        HidePlayerGenericButtons();
         for (BC.Player player = BC.Player.First; player < BC.Player.Count; ++player)
         {
             if (HasPlayerWon(player))
@@ -391,16 +395,14 @@ public class GameLogic : MonoBehaviour
 
         m_frame = 0;
         m_state = GameState.InGame;
-        m_currentPlayer = m_finishedRace.Winner;
         m_finishedRace.StartRace();
         m_finishedRace = null;
         EndPlayerTurn();
-        StartPlayerTurn();
     }
 
     void ExitFinishingGame()
     {
-        SetActiveGenericBottomButton(false);
+        HidePlayerGenericButtons();
         m_state = GameState.Initialising;
     }
 
@@ -415,7 +417,7 @@ public class GameLogic : MonoBehaviour
     {
         ResetChosenHandCards();
 
-        SetActiveGenericBottomButton(false);
+        HidePlayerGenericButtons();
         ShowHand(m_currentPlayer);
         if (PlayerCanPlayCardOnARace())
         {
@@ -426,8 +428,8 @@ public class GameLogic : MonoBehaviour
         {
             m_maxNumCardsToSelectFromHand = 4;
             m_turnState = TurnState.PickCardsFromHandToDiscard;
-            SetGenericBottomButtonText("Discard " + m_chosenHandCardCount + " Cards from Hand");
-            SetActiveGenericBottomButton(true);
+            SetPlayerGenericButtonText("Discard " + m_chosenHandCardCount + " Cards from Hand");
+            ShowPlayerGenericButton();
         }
         UpdateStatus();
     }
@@ -443,8 +445,8 @@ public class GameLogic : MonoBehaviour
             Debug.Log("Discard[" + m_chosenHandCardCount + "] Card Index " + cardIndex + " Card Colour " + card.Colour + " Value " + card.Value);
         }
 */
-        SetGenericBottomButtonText("Discard " + m_chosenHandCardCount + " Cards from Hand");
-        SetActiveGenericBottomButton(true);
+        SetPlayerGenericButtonText("Discard " + m_chosenHandCardCount + " Cards from Hand");
+        ShowPlayerGenericButton();
         m_turnState = TurnState.PickCardsFromHandToDiscard;
         UpdateStatus();
     }
@@ -473,7 +475,6 @@ public class GameLogic : MonoBehaviour
         if (m_playerAlreadyDiscarded)
         {
             EndPlayerTurn();
-            StartPlayerTurn();
         }
         else
         {
@@ -629,7 +630,10 @@ public class GameLogic : MonoBehaviour
                 if (m_playerCupValues[player, cupIndex] == null)
                     Debug.LogError("Can't find Cup " + playerCupIndex + " Value Component");
             }
-
+            var playerGenericButtonName = playerUIRootName + "GenericButton";
+            m_playerGenericButtons[player] = GameObject.Find(playerGenericButtonName);
+            if (m_playerGenericButtons[player] == null)
+                Debug.LogError("Can't find GenericButton for Player " + (BC.Player)player + " " + playerGenericButtonName);
         }
         var unclaimedCupRootName = gameBoardUIRootName + "CupsBackground/";
         for (int cupIndex = 0; cupIndex < GameLogic.CubeTypeCount; ++cupIndex)
@@ -658,7 +662,7 @@ public class GameLogic : MonoBehaviour
     void NewGame()
     {
         ResetUnclaimedCups();
-        SetActiveGenericBottomButton(false);
+        HidePlayerGenericButtons();
         CreateDrawDeck();
         ShuffleDrawDeck();
         DealHands();
@@ -668,6 +672,7 @@ public class GameLogic : MonoBehaviour
             race.NewGame();
         m_frame = 0;
         m_finishedRace = null;
+        m_lastRaceWinner = BC.Player.Unknown;
         ResetChosenHandCards();
         m_currentPlayer = (BC.Player)m_random.Next(GameLogic.PlayerCount);
         m_roundWinner = BC.Player.Unknown;
@@ -831,22 +836,22 @@ public class GameLogic : MonoBehaviour
 
     void EndGame()
     {
-        SetGenericBottomButtonText("Continue");
-        SetActiveGenericBottomButton(true);
+        SetPlayerGenericButtonText("Continue");
+        ShowPlayerGenericButton();
     }
 
     void FinishingRace()
     {
         ++m_frame;
-        SetGenericBottomButtonText("Continue");
-        SetActiveGenericBottomButton(true);
+        SetPlayerGenericButtonText("Continue");
+        ShowPlayerGenericButton();
     }
 
     void FinishingGame()
     {
         ++m_frame;
-        SetGenericBottomButtonText("Continue");
-        SetActiveGenericBottomButton(true);
+        SetPlayerGenericButtonText("Continue");
+        ShowPlayerGenericButton();
     }
 
     void StartPlayerTurn()
@@ -862,18 +867,32 @@ public class GameLogic : MonoBehaviour
         m_playerAlreadyDiscarded = false;
         ResetChosenHandCards();
         m_turnState = TurnState.StartingPlayerTurn;
-        SetGenericBottomButtonText("Continue");
-        SetActiveGenericBottomButton(true);
+        SetPlayerGenericButtonText("Continue");
+        ShowPlayerGenericButton();
         ResetAllPlayCardButtons();
         UpdateStatus();
     }
 
     void EndPlayerTurn()
     {
+        m_turnState = TurnState.EndingPlayerTurn;
+        SetPlayerGenericButtonText("Continue");
+        ShowPlayerGenericButton();
+        UpdateStatus();
+    }
+
+    void ExitEndingPlayerTurn()
+    {
+        HidePlayerGenericButtons();
         HideHands();
+        if (m_lastRaceWinner != BC.Player.Unknown)
+            m_currentPlayer = m_lastRaceWinner;
+
         m_currentPlayer++;
         if (m_currentPlayer == BC.Player.Count)
             m_currentPlayer = BC.Player.First;
+        m_lastRaceWinner = BC.Player.Unknown;
+        StartPlayerTurn();
     }
 
     void UpdateStatus()
@@ -893,11 +912,15 @@ public class GameLogic : MonoBehaviour
                 StatusText.text = "No card can be Played. Select Cards to Discard";
                 break;
             case TurnState.FinishingRace:
-                StatusText.text = m_finishedRace.Winner + " Player Won the Race";
+                StatusText.text = m_lastRaceWinner + " Player Won the Race";
                 break;
             case TurnState.FinishingGame:
                 StatusText.text = m_roundWinner + " Player Won the Game";
                 break;
+            case TurnState.EndingPlayerTurn:
+                StatusText.text = m_currentPlayer + " Player: Press Continue to Finish Turn";
+                break;
+
         }
     }
 
@@ -1075,11 +1098,11 @@ public class GameLogic : MonoBehaviour
         m_playerCupImages = new Image[GameLogic.PlayerCount, GameLogic.MaxCupsPerPlayer];
         m_playerCupValues = new Text[GameLogic.PlayerCount, GameLogic.MaxCupsPerPlayer];
         m_playerCups = new bool[GameLogic.PlayerCount, GameLogic.CubeTypeCount];
+        m_playerGenericButtons = new GameObject[GameLogic.PlayerCount];
+
         m_cupOwner = new BC.Player[GameLogic.CubeTypeCount];
         m_unclaimedCupGOs = new GameObject[GameLogic.CubeTypeCount];
         m_unclaimedCupButtons = new Button[GameLogic.CubeTypeCount];
-
-        SetActiveGenericBottomButton(false);
     }
 
     void Start()
@@ -1163,14 +1186,28 @@ public class GameLogic : MonoBehaviour
         return allOk;
     }
 
-    void SetGenericBottomButtonText(string text)
+    void SetPlayerGenericButtonText(string text)
     {
-        GenericBottomButton.GetComponentInChildren<Text>().text = text;
+        int playerStart = (int)m_currentPlayer;
+        int playerEnd = playerStart + 1;
+        if (m_currentPlayer == BC.Player.Unknown)
+        {
+            playerStart = (int)BC.Player.First;
+            playerEnd = (int)BC.Player.Count;
+        }
+        for (int p = playerStart; p < playerEnd; ++p)
+            m_playerGenericButtons[p].GetComponentInChildren<Text>().text = text;
     }
 
-    void SetActiveGenericBottomButton(bool enable)
+    void ShowPlayerGenericButton()
     {
-        GenericBottomButton.SetActive(enable);
+        m_playerGenericButtons[(int)m_currentPlayer].SetActive(true);
+    }
+
+    void HidePlayerGenericButtons()
+    {
+        for (int p = 0; p < (int)BC.Player.Count; ++p)
+            m_playerGenericButtons[p].SetActive(false);
     }
 
     void DeSelectCard(BC.Player player, int cardIndex)

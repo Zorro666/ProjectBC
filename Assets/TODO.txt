@@ -1,10 +1,10 @@
 Bugs
 
 High
-Detect when wildcards could be used to win a cup : make "Use Wildcards" button appear for user to choose to press
+Need to recompute what cups could be won at start of player turn (not just end of race/turn)
+Need to compute end of game after a cup has been claimed (not just end of race/turn)
 
 Medium
-Wildcards: wildcard button : then click on the unclaimed cup to win it
 
 Low
 Should make a Player class to store player specific values 
