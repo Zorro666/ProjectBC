@@ -1,12 +1,13 @@
 Bugs
 
 High
-Only show player end turn button/state if it is required i.e. cups could be claimed using wildcards
 Remove the PlayCard button and show where the card would be layed as an outline and click on the outline
+Can the Race Won state be merged with player start state : takes 2 clicks now
 
 Medium
 
 Low
+Proper 2-player : need to show what the other player did somehow : race won, cups claimed, card played
 Should make a Player class to store player specific values 
 Should really shuffle discard deck and then make it the draw deck
 Add a testing framework : lots of tests could be done and would be helpful

@@ -881,12 +881,32 @@ public class GameLogic : MonoBehaviour
         UpdateStatus();
     }
 
+    bool NeedEndPlayerTurn()
+    {
+        for (int cubeIndex = 0; cubeIndex < GameLogic.CubeTypeCount; ++cubeIndex)
+        {
+            if (!IsCupWon((BC.CardCubeColour)cubeIndex))
+            {
+                if (m_unclaimedCupButtons[cubeIndex].interactable)
+                    return true;
+            }
+        }
+        return false;
+    }
+
     void EndPlayerTurn()
     {
-        m_turnState = TurnState.EndingPlayerTurn;
-        SetPlayerGenericButtonText("Continue");
-        ShowPlayerGenericButton();
-        UpdateStatus();
+        if (NeedEndPlayerTurn())
+        {
+            m_turnState = TurnState.EndingPlayerTurn;
+            SetPlayerGenericButtonText("Continue");
+            ShowPlayerGenericButton();
+            UpdateStatus();
+        }
+        else
+        {
+            ExitEndingPlayerTurn();
+        }
     }
 
     void ExitEndingPlayerTurn()
