@@ -364,6 +364,7 @@ public class GameLogic : MonoBehaviour
         m_playerCubeCounts[playerIndex, cupIndex] = 0;
         m_playerWildcardCubeCounts[playerIndex] -= numWildCardsNeeded;
         UpdateCubeCounts();
+        ComputeHasGameEnded();
     }
 
     int CubesTotalCount
@@ -379,9 +380,8 @@ public class GameLogic : MonoBehaviour
         ReplacePlayerCardInHand(player, cardIndex);
     }
 
-    void ExitFinishingRace()
+    bool ComputeHasGameEnded()
     {
-        HidePlayerGenericButtons();
         for (BC.Player player = BC.Player.First; player < BC.Player.Count; ++player)
         {
             if (HasPlayerWon(player))
@@ -389,9 +389,17 @@ public class GameLogic : MonoBehaviour
                 m_roundWinner = player;
                 m_turnState = TurnState.FinishingGame;
                 UpdateStatus();
-                return;
+                return true;
             }
         }
+        return false;
+    }
+
+    void ExitFinishingRace()
+    {
+        HidePlayerGenericButtons();
+        if (ComputeHasGameEnded())
+            return;
 
         m_frame = 0;
         m_state = GameState.InGame;
@@ -860,8 +868,8 @@ public class GameLogic : MonoBehaviour
         //m_playerWildcardCubeCounts[(int)m_currentPlayer] += m_random.Next(-1, 2);
         //if (m_playerWildcardCubeCounts[(int)m_currentPlayer] < 0)
             //m_playerWildcardCubeCounts[(int)m_currentPlayer] = 0;
-        //UpdateCubeCounts();
         //DEBUG:DEBUG
+        UpdateCubeCounts();
 
         m_maxNumCardsToSelectFromHand = 1;
         m_playerAlreadyDiscarded = false;

@@ -1,8 +1,8 @@
 Bugs
 
 High
-Need to recompute what cups could be won at start of player turn (not just end of race/turn)
-Need to compute end of game after a cup has been claimed (not just end of race/turn)
+Only show player end turn button/state if it is required i.e. cups could be claimed using wildcards
+Remove the PlayCard button and show where the card would be layed as an outline and click on the outline
 
 Medium
 
