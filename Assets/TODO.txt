@@ -5,15 +5,16 @@ Remove the PlayCard button and show where the card would be layed as an outline 
 Can the Race Won state be merged with player start state : takes 2 clicks now
 
 Medium
-
-Low
 Proper 2-player : need to show what the other player did somehow : race won, cups claimed, card played
-Should make a Player class to store player specific values 
-Should really shuffle discard deck and then make it the draw deck
-Add a testing framework : lots of tests could be done and would be helpful
+When select a card in hand : bring it to the front to show its complete outline
 Finish the validation TODOs
 Finish all the TODOs
-Drag'n'drop for playing cards
+
+Low
 Drop cards on race row instead of specific button
-Consider UNDO option after playing a card
+Should make a Player class to store player specific values 
+Drag'n'drop for playing cards
+Add a testing framework : lots of tests could be done and would be helpful
 Make pretty graphics
+Consider UNDO option after playing a card
+Should really shuffle discard deck and then make it the draw deck
