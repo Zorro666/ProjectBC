@@ -291,12 +291,17 @@ public class GameLogic : MonoBehaviour
             Debug.LogError("PlayCard invalid raceNumber " + raceNumber);
             return;
         }
-        var sideString = source.name.Substring(8);
+        var sideString = source.name;
         BC.Player side = BC.Player.Unknown;
-        if (sideString == "Left")
+        if (sideString.StartsWith("Left", System.StringComparison.Ordinal))
             side = BC.Player.Left;
-        else if (sideString == "Right")
+        else if (sideString.StartsWith("Right", System.StringComparison.Ordinal))
             side = BC.Player.Right;
+        if (side == BC.Player.Unknown)
+        {
+            Debug.LogError("PlayCard invalid side " + sideString);
+            return;
+        }
 
         //int cardIndex = m_random.Next(GameLogic.HandSize);
         int playerIndex = (int)m_currentPlayer;
