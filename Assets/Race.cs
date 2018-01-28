@@ -12,17 +12,19 @@ public class Race : MonoBehaviour
 
     public int NumberOfCubes;
 
-    Image m_background;
-    Image[] m_cubeImages;
     GameLogic m_gamelogic;
+
     State m_state;
     Card[,] m_cards;
     int[] m_cardsPlayed;
+    int[,] m_cardsRemaining;
+    BC.Player m_winner;
+
     GameObject[,] m_playedCardsGO;
     Image[,] m_playedCardsBackground;
     Text[,] m_playedCardsValue;
-    int[,] m_cardsRemaining;
-    BC.Player m_winner;
+    Image m_background;
+    Image[] m_cubeImages;
 
     public BC.Player Winner
     {

@@ -9,7 +9,8 @@ public class RaceTest {
 	[Test]
 	public void RaceTestSimplePasses() 
     {
-		// Use the Assert class to test conditions.
+        // Use the Assert class to test conditions.
+        Assert.Fail();
 	}
     // Test
     //BC.Player Race.ComputeWinner()
@@ -26,5 +27,6 @@ public class RaceTest {
 		// Use the Assert class to test conditions.
 		// yield to skip a frame
 		yield return null;
+        Assert.Fail();
 	}
 }

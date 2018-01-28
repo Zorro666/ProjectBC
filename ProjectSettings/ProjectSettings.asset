@@ -637,7 +637,7 @@ PlayerSettings:
     Collab: 1
     UNet: 1
   facebookSdkVersion: 7.9.4
-  apiCompatibilityLevel: 2
+  apiCompatibilityLevel: 3
   cloudProjectId: ef6f8cc3-44ed-435f-bd20-cc6494c3ded3
   projectName: ProjectBC
   organizationId: jaketurner
