@@ -1,20 +1,13 @@
-﻿public class Card
+﻿using BC;
+
+public class Card
 {
-    public BC.CardCubeColour Colour
-    {
-        get { return m_Colour; }
-    } 
-    public int Value
-    {
-        get { return m_Value; }
-    }
+    public CupCardCubeColour Colour { get; private set; }
+    public int Value { get; private set; }
 
-    readonly BC.CardCubeColour m_Colour;
-    readonly int m_Value;
-
-    public Card(BC.CardCubeColour colour, int value)
+    public Card(CupCardCubeColour colour, int value)
     {
-        m_Colour = colour;
-        m_Value = value;
+        Colour = colour;
+        Value = value;
     }
 }

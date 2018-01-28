@@ -170,7 +170,7 @@ public class Race : MonoBehaviour
         {
             var cubeColour = m_gamelogic.NextCube();
             var colour = (int)cubeColour;
-            cubeImage.color = m_gamelogic.CardCubeColour(cubeColour);
+            cubeImage.color = m_gamelogic.GetCardCubeColour(cubeColour);
             for (int playerIndex = 0; playerIndex < GameLogic.PlayerCount; ++playerIndex)
                 ++m_cardsRemaining[playerIndex, colour];
         }
@@ -270,9 +270,9 @@ public class Race : MonoBehaviour
     {
         string text = card.Value.ToString();
         m_playedCardsValue[playerIndex, cardIndex].text = text;
-        var colour = m_gamelogic.CardCubeColour(card.Colour);
+        var colour = m_gamelogic.GetCardCubeColour(card.Colour);
         m_playedCardsBackground[playerIndex, cardIndex].color = colour;
-        var textColour = (card.Colour == BC.CardCubeColour.Yellow) ? Color.black : Color.white;
+        var textColour = (card.Colour == BC.CupCardCubeColour.Yellow) ? Color.black : Color.white;
         m_playedCardsValue[playerIndex, cardIndex].color = textColour;
     }
 
