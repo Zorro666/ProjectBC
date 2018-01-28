@@ -120,11 +120,6 @@ public class GameLogic : MonoBehaviour
         m_discardDeck.Enqueue(card);
     }
 
-    public BC.Player CurrentPlayer
-    {
-        get { return m_currentPlayer; }
-    }
-
     public Color CardCubeColour(BC.CardCubeColour cardCubeType)
     {
         return m_cardCubeColours[(int)cardCubeType];
@@ -312,7 +307,7 @@ public class GameLogic : MonoBehaviour
             return;
         }
         var card = m_playerHands[playerIndex, cardIndex];
-        bool validCard = m_races[raceNumber - 1].PlayCard(side, card);
+        bool validCard = m_races[raceNumber - 1].PlayCard(side, card, m_currentPlayer);
         if (!validCard)
         {
             StatusText.text = "Wrong Race. Please choose a different Race";
@@ -959,7 +954,7 @@ public class GameLogic : MonoBehaviour
 
     void CreateFullDeck()
     {
-        int[][] allCardValues = new int[(int)BC.CardCubeColour.Count][];
+        int[][] allCardValues = new int[GameLogic.CubeTypeCount][];
         allCardValues[(int)BC.CardCubeColour.Grey] = new int[] { 1, 4, 7, 10, 13 };
         allCardValues[(int)BC.CardCubeColour.Blue] = new int[] { 1, 3, 5, 7, 9, 11, 13 };
         allCardValues[(int)BC.CardCubeColour.Green] = new int[] { 1, 2, 4, 6, 7, 8, 10, 12, 13 };
@@ -967,7 +962,7 @@ public class GameLogic : MonoBehaviour
         allCardValues[(int)BC.CardCubeColour.Red] = new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 };
 
         int cardIndex = 0;
-        for (int colour = 0; colour < (int)BC.CardCubeColour.Count; ++colour)
+        for (int colour = 0; colour < GameLogic.CubeTypeCount; ++colour)
         {
             int[] cardValues = allCardValues[colour];
             if (m_cubeCurrentCounts[colour] != cardValues.Length)
@@ -1178,7 +1173,7 @@ public class GameLogic : MonoBehaviour
     bool ValidateCubes()
     {
         // Verify count of cubes left to play is correct
-        int[] cubeCounts = new int[(int)BC.CardCubeColour.Count];
+        int[] cubeCounts = new int[GameLogic.CubeTypeCount];
         bool allOk = true;
         for (int i = 0; i < m_cubesRemainingCount; ++i)
         {
@@ -1226,7 +1221,7 @@ public class GameLogic : MonoBehaviour
         if (m_currentPlayer == BC.Player.Unknown)
         {
             playerStart = (int)BC.Player.First;
-            playerEnd = (int)BC.Player.Count;
+            playerEnd = GameLogic.PlayerCount;
         }
         for (int p = playerStart; p < playerEnd; ++p)
             m_playerGenericButtons[p].GetComponentInChildren<Text>().text = text;
@@ -1239,7 +1234,7 @@ public class GameLogic : MonoBehaviour
 
     void HidePlayerGenericButtons()
     {
-        for (int p = 0; p < (int)BC.Player.Count; ++p)
+        for (int p = 0; p < GameLogic.PlayerCount; ++p)
             m_playerGenericButtons[p].SetActive(false);
     }
 

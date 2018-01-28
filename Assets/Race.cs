@@ -33,12 +33,12 @@ public class Race : MonoBehaviour
     {
         m_cubeImages = new Image[NumberOfCubes];
         m_state = State.Finished;
-        m_cards = new Card[(int)BC.Player.Count, NumberOfCubes];
-        m_cardsPlayed = new int[(int)BC.Player.Count];
-        m_playedCardsGO = new GameObject[(int)BC.Player.Count, NumberOfCubes];
-        m_playedCardsBackground = new Image[(int)BC.Player.Count, NumberOfCubes];
-        m_playedCardsValue = new Text[(int)BC.Player.Count, NumberOfCubes];
-        m_cardsRemaining = new int[(int)BC.Player.Count, GameLogic.CubeTypeCount];
+        m_cards = new Card[GameLogic.PlayerCount, NumberOfCubes];
+        m_cardsPlayed = new int[GameLogic.PlayerCount];
+        m_playedCardsGO = new GameObject[GameLogic.PlayerCount, NumberOfCubes];
+        m_playedCardsBackground = new Image[GameLogic.PlayerCount, NumberOfCubes];
+        m_playedCardsValue = new Text[GameLogic.PlayerCount, NumberOfCubes];
+        m_cardsRemaining = new int[GameLogic.PlayerCount, GameLogic.CubeTypeCount];
     }
 
     void Start() 
@@ -60,7 +60,7 @@ public class Race : MonoBehaviour
                 Debug.LogError("Can't find Cube[" + cubeIndex + "] '" + cubeName + "'");
         }
 
-        for (int player = 0; player < (int)BC.Player.Count; ++player)
+        for (int player = 0; player < GameLogic.PlayerCount; ++player)
         {
             var playedCardsRootName = raceCardName + (BC.Player)player + "Card";
             for (int j = 0; j < NumberOfCubes; ++j)
@@ -91,7 +91,7 @@ public class Race : MonoBehaviour
     public bool CanPlayCard(Card card)
     {
         int cardColour = (int)card.Colour;
-        for (int playerIndex = 0; playerIndex < (int)BC.Player.Count; ++playerIndex)
+        for (int playerIndex = 0; playerIndex < GameLogic.PlayerCount; ++playerIndex)
         {
             if (m_cardsRemaining[playerIndex, cardColour] > 0)
                 return true;
@@ -101,7 +101,7 @@ public class Race : MonoBehaviour
 
     public void ResetPlayCardButtons()
     {
-        for (int playerIndex = 0; playerIndex < (int)BC.Player.Count; ++playerIndex)
+        for (int playerIndex = 0; playerIndex < GameLogic.PlayerCount; ++playerIndex)
         {
             int cardIndex = m_cardsPlayed[playerIndex];
             if (cardIndex < NumberOfCubes)
@@ -115,7 +115,7 @@ public class Race : MonoBehaviour
     public void SetPlayCardButtons(Card card)
     {
         int cardColour = (int)card.Colour;
-        for (int playerIndex = 0; playerIndex < (int)BC.Player.Count; ++playerIndex)
+        for (int playerIndex = 0; playerIndex < GameLogic.PlayerCount; ++playerIndex)
         {
             int cardIndex = m_cardsPlayed[playerIndex];
             bool setValue = false;
@@ -132,6 +132,7 @@ public class Race : MonoBehaviour
             }
             if (setValue)
             {
+                SetPlayedCardToCard(playerIndex, cardIndex, card);
                 m_playedCardsGO[playerIndex, cardIndex].GetComponent<Button>().interactable = active;
                 m_playedCardsGO[playerIndex, cardIndex].SetActive(active);
             }
@@ -143,7 +144,7 @@ public class Race : MonoBehaviour
         for (int i = 0; i < m_cardsPlayed.Length; ++i)
             m_cardsPlayed[i] = 0;
 
-        for (int playerIndex = 0; playerIndex < (int)BC.Player.Count; ++playerIndex)
+        for (int playerIndex = 0; playerIndex < GameLogic.PlayerCount; ++playerIndex)
         {
             for (int cardIndex = 0; cardIndex < NumberOfCubes; ++cardIndex)
             {
@@ -170,7 +171,7 @@ public class Race : MonoBehaviour
             var cubeColour = m_gamelogic.NextCube();
             var colour = (int)cubeColour;
             cubeImage.color = m_gamelogic.CardCubeColour(cubeColour);
-            for (int playerIndex = 0; playerIndex < (int)BC.Player.Count; ++playerIndex)
+            for (int playerIndex = 0; playerIndex < GameLogic.PlayerCount; ++playerIndex)
                 ++m_cardsRemaining[playerIndex, colour];
         }
         if (m_state == State.Lowest)
@@ -181,13 +182,13 @@ public class Race : MonoBehaviour
         m_winner = BC.Player.Unknown;
     }
 
-    BC.Player ComputeWinner()
+    BC.Player ComputeWinner(BC.Player currentPlayer)
     {
         BC.Player maxScorePlayer = BC.Player.Unknown;
         int maxScoreValue = -1;
         BC.Player minScorePlayer = BC.Player.Unknown;
         int minScoreValue = 9999;
-        for (int playerIndex = 0; playerIndex < (int)BC.Player.Count; ++playerIndex)
+        for (int playerIndex = 0; playerIndex < GameLogic.PlayerCount; ++playerIndex)
         {
             int score = 0;
             BC.Player player = (BC.Player)playerIndex;
@@ -196,7 +197,7 @@ public class Race : MonoBehaviour
 
             if (score == maxScoreValue)
             {
-                maxScorePlayer = m_gamelogic.CurrentPlayer;
+                maxScorePlayer = currentPlayer;
             }
 
             if (score > maxScoreValue)
@@ -207,7 +208,7 @@ public class Race : MonoBehaviour
 
             if (score == minScoreValue)
             {
-                minScorePlayer = m_gamelogic.CurrentPlayer;
+                minScorePlayer = currentPlayer;
             }
 
             if (score < minScoreValue)
@@ -216,8 +217,8 @@ public class Race : MonoBehaviour
                 minScorePlayer = player;
             }
         }
-        Debug.Log("max " + maxScorePlayer + " " + maxScoreValue + " CurrentPlayer:" + m_gamelogic.CurrentPlayer);
-        Debug.Log("min " + minScorePlayer + " " + minScoreValue + " CurrentPlayer:" + m_gamelogic.CurrentPlayer);
+        Debug.Log("max " + maxScorePlayer + " " + maxScoreValue + " CurrentPlayer:" + currentPlayer);
+        Debug.Log("min " + minScorePlayer + " " + minScoreValue + " CurrentPlayer:" + currentPlayer);
         if (m_state == State.Lowest)
             return minScorePlayer;
         if (m_state == State.Highest)
@@ -240,9 +241,9 @@ public class Race : MonoBehaviour
         StartRace();
     }
 
-    public void FinishRace()
+    public void FinishRace(BC.Player currentPlayer)
     {
-        m_winner = ComputeWinner();
+        m_winner = ComputeWinner(currentPlayer);
         Debug.Log(m_state + " Player " + m_winner + " won");
         for (int cardIndex = 0; cardIndex < NumberOfCubes; ++cardIndex)
         {
@@ -251,7 +252,7 @@ public class Race : MonoBehaviour
             m_gamelogic.AddCubeToPlayer(m_winner, card.Colour);
         }
 
-        for (int playerIndex = 0; playerIndex < (int)BC.Player.Count; ++playerIndex)
+        for (int playerIndex = 0; playerIndex < GameLogic.PlayerCount; ++playerIndex)
         {
             for (int cardIndex = 0; cardIndex < NumberOfCubes; ++cardIndex)
                 m_gamelogic.DiscardCard(m_cards[playerIndex, cardIndex]);
@@ -265,7 +266,17 @@ public class Race : MonoBehaviour
         m_gamelogic.FinishRace(m_winner, this);
     }
 
-    public bool PlayCard(BC.Player player, Card card)
+    void SetPlayedCardToCard(int playerIndex, int cardIndex, Card card)
+    {
+        string text = card.Value.ToString();
+        m_playedCardsValue[playerIndex, cardIndex].text = text;
+        var colour = m_gamelogic.CardCubeColour(card.Colour);
+        m_playedCardsBackground[playerIndex, cardIndex].color = colour;
+        var textColour = (card.Colour == BC.CardCubeColour.Yellow) ? Color.black : Color.white;
+        m_playedCardsValue[playerIndex, cardIndex].color = textColour;
+    }
+
+    public bool PlayCard(BC.Player player, Card card, BC.Player currentPlayer)
     {
         //Debug.Log(name + " PlayCard " + player + " " + card.Colour + " " + card.Value);
         if (m_state == State.Finished)
@@ -287,13 +298,8 @@ public class Race : MonoBehaviour
             return false;
         }
         --m_cardsRemaining[playerIndex, cardColour];
-        string text = card.Value.ToString();
         ++m_cardsPlayed[playerIndex];
-        m_playedCardsValue[playerIndex, cardIndex].text = text;
-        var colour = m_gamelogic.CardCubeColour(card.Colour);
-        m_playedCardsBackground[playerIndex, cardIndex].color = colour;
-        var textColour = (card.Colour == BC.CardCubeColour.Yellow) ? Color.black : Color.white;
-        m_playedCardsValue[playerIndex, cardIndex].color = textColour;
+        SetPlayedCardToCard(playerIndex, cardIndex, card);
         m_playedCardsGO[playerIndex, cardIndex].SetActive(true);
         m_playedCardsGO[playerIndex, cardIndex].GetComponent<Button>().interactable = false;
         m_cards[playerIndex, cardIndex] = card;
@@ -306,7 +312,7 @@ public class Race : MonoBehaviour
                 raceFinished = false;
         }
         if (raceFinished)
-            FinishRace();
+            FinishRace(currentPlayer);
         return true;
     }
 }
