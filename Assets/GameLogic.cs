@@ -118,17 +118,17 @@ public class GameLogic : MonoBehaviour
         m_discardDeck.Enqueue(card);
     }
 
-    public Color GetCardCubeColour(BC.CupCardCubeColour cardCubeType)
+    public Color GetCardCubeColour(CupCardCubeColour cardCubeType)
     {
         return m_cardCubeColours[(int)cardCubeType];
     }
 
-    public void AddCubeToPlayer(BC.Player player, BC.CupCardCubeColour cubeType)
+    public void AddCubeToPlayer(Player player, CupCardCubeColour cubeType)
     {
         ++m_playerCubeCounts[(int)player, (int)cubeType];
     }
 
-    public void FinishRace(BC.Player winner, Race race)
+    public void FinishRace(Player winner, Race race)
     {
         UpdateCubeCounts();
         m_turnState = TurnState.FinishingRace;
@@ -285,12 +285,12 @@ public class GameLogic : MonoBehaviour
             return;
         }
         var sideString = source.name;
-        BC.Player side = BC.Player.Unknown;
+        Player side = Player.Unknown;
         if (sideString.StartsWith("Left", System.StringComparison.Ordinal))
-            side = BC.Player.Left;
+            side = Player.Left;
         else if (sideString.StartsWith("Right", System.StringComparison.Ordinal))
-            side = BC.Player.Right;
-        if (side == BC.Player.Unknown)
+            side = Player.Right;
+        if (side == Player.Unknown)
         {
             Debug.LogError("PlayCard invalid side " + sideString);
             return;
@@ -330,8 +330,8 @@ public class GameLogic : MonoBehaviour
             return;
         var cupName = source.name;
         Debug.Log("ClaimCup:" + source.name + " by " + m_currentPlayer);
-        var cupType = BC.CupCardCubeColour.Count;
-        for (BC.CupCardCubeColour c = BC.CupCardCubeColour.Grey; c < BC.CupCardCubeColour.Count; ++c)
+        var cupType = CupCardCubeColour.Count;
+        for (CupCardCubeColour c = CupCardCubeColour.Grey; c < CupCardCubeColour.Count; ++c)
         {
             if (c.ToString() == cupName)
             {
@@ -339,7 +339,7 @@ public class GameLogic : MonoBehaviour
                 break;
             }
         }
-        if (cupType == BC.CupCardCubeColour.Count)
+        if (cupType == CupCardCubeColour.Count)
         {
             Debug.LogError("ClaimCup:" + cupName + " unknown cupType");
             return;
@@ -371,7 +371,7 @@ public class GameLogic : MonoBehaviour
         set { m_cubesTotalCount = value; }
     }
 
-    void PlayerDrawNewCard(BC.Player player, int cardIndex)
+    void PlayerDrawNewCard(Player player, int cardIndex)
     {
         if (m_drawDeck.Count == 0)
             StartDrawDeckFromDiscardDeck();
@@ -380,7 +380,7 @@ public class GameLogic : MonoBehaviour
 
     bool ComputeHasGameEnded()
     {
-        for (BC.Player player = BC.Player.Left; player < BC.Player.Count; ++player)
+        for (Player player = Player.Left; player < Player.Count; ++player)
         {
             if (HasPlayerWon(player))
             {
@@ -521,7 +521,7 @@ public class GameLogic : MonoBehaviour
             race.SetPlayCardButtons(card);
     }
 
-    public BC.CupCardCubeColour NextCube()
+    public CupCardCubeColour NextCube()
     {
         if (m_cubesRemainingCount > 0)
         {
@@ -548,7 +548,7 @@ public class GameLogic : MonoBehaviour
         {
             var count = m_cubeCurrentCounts[cubeType];
             for (int i = 0; i < count; ++i)
-                m_cubes[cubeIndex++] = (BC.CupCardCubeColour)cubeType;
+                m_cubes[cubeIndex++] = (CupCardCubeColour)cubeType;
         }
         if (CubesTotalCount != cubeIndex)
             Debug.LogError("cubes count not matching " + CubesTotalCount + " != " + cubeIndex);
@@ -570,18 +570,18 @@ public class GameLogic : MonoBehaviour
         var gameBoardUIRootName = "/GameBoard/UI/";
         for (int player = 0; player < GameLogic.PlayerCount; ++player)
         {
-            var playerUIRootName = gameBoardUIRootName + (BC.Player)player + "Player/";
+            var playerUIRootName = gameBoardUIRootName + (Player)player + "Player/";
             var playerCubesBackgroundRootName = playerUIRootName + "CubesBackground/";
             var playerCupsRootName = playerUIRootName + "CupsBackground/";
             for (int cubeType = 0; cubeType < GameLogic.CubeTypeCount; ++cubeType)
             {
-                var cubeCountText = playerCubesBackgroundRootName + (BC.CupCardCubeColour)cubeType;
+                var cubeCountText = playerCubesBackgroundRootName + (CupCardCubeColour)cubeType;
                 var cubeCountGO = GameObject.Find(cubeCountText);
                 if (cubeCountGO == null)
-                    Debug.LogError("Can't find " + (BC.CupCardCubeColour)cubeType + " cube count GameObject " + cubeCountText);
+                    Debug.LogError("Can't find " + (CupCardCubeColour)cubeType + " cube count GameObject " + cubeCountText);
                 m_playerCubeCountsTexts[player, cubeType] = cubeCountGO.GetComponent<Text>();
                 if (m_playerCubeCountsTexts[player, cubeType] == null)
-                    Debug.LogError("Can't find " + (BC.CupCardCubeColour)cubeType + " cube count UI Text Component");
+                    Debug.LogError("Can't find " + (CupCardCubeColour)cubeType + " cube count UI Text Component");
 
                 m_playerCups[player, cubeType] = false;
             }
@@ -596,7 +596,7 @@ public class GameLogic : MonoBehaviour
             var playerHandRootName = playerUIRootName + "Hand/";
             m_playerHandGOs[player] = GameObject.Find(playerHandRootName);
             if (m_playerHandGOs[player] == null)
-                Debug.LogError("Can't find Player Hand UI GameObject " + (BC.Player)player + " " + playerHandRootName);
+                Debug.LogError("Can't find Player Hand UI GameObject " + (Player)player + " " + playerHandRootName);
             for (int card = 0; card < GameLogic.HandSize; ++card)
             {
                 int cardIndex = card + 1;
@@ -606,7 +606,7 @@ public class GameLogic : MonoBehaviour
                     Debug.LogError("Can't find PlayerCardOutlineGO " + playerCardRootName);
                 m_playerCardOutlines[player, card] = playerCardOutlineGO.GetComponent<Image>();
                 if (m_playerCardOutlines[player, card] == null)
-                    Debug.LogError("Can't find Player " + (BC.Player)player + " Card[" + cardIndex + " Outline Image " + playerCardRootName);
+                    Debug.LogError("Can't find Player " + (Player)player + " Card[" + cardIndex + " Outline Image " + playerCardRootName);
 
                 var playerCardBackgroundName = playerCardRootName + "Background";
                 var playerCardBackgroundGO = GameObject.Find(playerCardBackgroundName);
@@ -620,7 +620,7 @@ public class GameLogic : MonoBehaviour
                     Debug.LogError("Can't find PlayerCardValueGO " + playerCardValueName);
                 m_playerCardValues[player, card] = playerCardValueGO.GetComponent<Text>();
                 if (m_playerCardValues[player, card] == null)
-                    Debug.LogError("Can't find Player " + (BC.Player)player + " Card[" + cardIndex + " Value Text " + playerCardValueName);
+                    Debug.LogError("Can't find Player " + (Player)player + " Card[" + cardIndex + " Value Text " + playerCardValueName);
             }
             for (int cupIndex = 0; cupIndex < GameLogic.MaxCupsPerPlayer; ++cupIndex)
             {
@@ -643,18 +643,18 @@ public class GameLogic : MonoBehaviour
             var playerGenericButtonName = playerUIRootName + "GenericButton";
             m_playerGenericButtons[player] = GameObject.Find(playerGenericButtonName);
             if (m_playerGenericButtons[player] == null)
-                Debug.LogError("Can't find GenericButton for Player " + (BC.Player)player + " " + playerGenericButtonName);
+                Debug.LogError("Can't find GenericButton for Player " + (Player)player + " " + playerGenericButtonName);
         }
         var unclaimedCupRootName = gameBoardUIRootName + "CupsBackground/";
         for (int cupIndex = 0; cupIndex < GameLogic.CubeTypeCount; ++cupIndex)
         {
-            var unclaimedCupName = unclaimedCupRootName + (BC.CupCardCubeColour)cupIndex;
+            var unclaimedCupName = unclaimedCupRootName + (CupCardCubeColour)cupIndex;
             m_unclaimedCupGOs[cupIndex] = GameObject.Find(unclaimedCupName);
             if (m_unclaimedCupGOs[cupIndex] == null)
-                Debug.LogError("Can't find cup " + (BC.CupCardCubeColour)cupIndex + " " + unclaimedCupName);
+                Debug.LogError("Can't find cup " + (CupCardCubeColour)cupIndex + " " + unclaimedCupName);
             m_unclaimedCupButtons[cupIndex] = m_unclaimedCupGOs[cupIndex].GetComponent<Button>();
             if (m_unclaimedCupButtons[cupIndex] == null)
-                Debug.LogError("Can't find cup " + (BC.CupCardCubeColour)cupIndex + " Button Component");
+                Debug.LogError("Can't find cup " + (CupCardCubeColour)cupIndex + " Button Component");
         }
     }
 
@@ -662,7 +662,7 @@ public class GameLogic : MonoBehaviour
     {
         for (int cupIndex = 0; cupIndex < GameLogic.CubeTypeCount; ++cupIndex)
         {
-            if (!IsCupWon((BC.CupCardCubeColour)cupIndex))
+            if (!IsCupWon((CupCardCubeColour)cupIndex))
                 m_unclaimedCupGOs[cupIndex].SetActive(true);
         }
         foreach (var cupButton in m_unclaimedCupButtons)
@@ -682,17 +682,17 @@ public class GameLogic : MonoBehaviour
             race.NewGame();
         m_frame = 0;
         m_finishedRace = null;
-        m_lastRaceWinner = BC.Player.Unknown;
+        m_lastRaceWinner = Player.Unknown;
         ResetChosenHandCards();
-        m_currentPlayer = (BC.Player)m_random.Next(GameLogic.PlayerCount);
-        m_roundWinner = BC.Player.Unknown;
+        m_currentPlayer = (Player)m_random.Next(GameLogic.PlayerCount);
+        m_roundWinner = Player.Unknown;
 
         HideHands();
         for (int player = 0; player < GameLogic.PlayerCount; ++player)
         {
             for (int cubeType = 0; cubeType < GameLogic.CubeTypeCount; ++cubeType)
             {
-                m_playerCubeCountsTexts[player, cubeType].color = GetCardCubeColour((BC.CupCardCubeColour)cubeType);
+                m_playerCubeCountsTexts[player, cubeType].color = GetCardCubeColour((CupCardCubeColour)cubeType);
                 m_playerCubeCounts[player, cubeType] = 0;
             }
             for (int cupIndex = 0; cupIndex < GameLogic.MaxCupsPerPlayer; ++cupIndex)
@@ -703,16 +703,16 @@ public class GameLogic : MonoBehaviour
         }
         UpdateCubeCounts();
         for (int cupType = 0; cupType < GameLogic.CubeTypeCount; ++cupType)
-            m_cupOwner[cupType] = BC.Player.Unknown;
+            m_cupOwner[cupType] = Player.Unknown;
         StartPlayerTurn();
     }
 
-    bool IsCupWon(BC.CupCardCubeColour cupColour)
+    bool IsCupWon(CupCardCubeColour cupColour)
     {
-        return (m_cupOwner[(int)cupColour] != BC.Player.Unknown);
+        return (m_cupOwner[(int)cupColour] != Player.Unknown);
     }
 
-    void AwardCupToPlayer(BC.Player player, BC.CupCardCubeColour cupColour)
+    void AwardCupToPlayer(Player player, CupCardCubeColour cupColour)
     {
         int playerIndex = (int)player;
         int cupIndex = (int)cupColour;
@@ -732,12 +732,12 @@ public class GameLogic : MonoBehaviour
             m_playerCupImages[playerIndex, cupDisplayIndex].color = GetCardCubeColour(cupColour);
             var cubeCountToWin = m_cubeWinningCounts[cupIndex];
             m_playerCupValues[playerIndex, cupDisplayIndex].text = cubeCountToWin.ToString();
-            var textColour = (cupColour == BC.CupCardCubeColour.Yellow) ? Color.black : Color.white;
+            var textColour = (cupColour == CupCardCubeColour.Yellow) ? Color.black : Color.white;
             m_playerCupValues[playerIndex, cupDisplayIndex].color = textColour;
         }
     }
 
-    int NumCupsPlayerHasWon(BC.Player player)
+    int NumCupsPlayerHasWon(Player player)
     {
         int cupsWonCount = 0;
         for (int cupType = 0; cupType < GameLogic.CubeTypeCount; ++cupType)
@@ -745,21 +745,21 @@ public class GameLogic : MonoBehaviour
         return cupsWonCount;
     }
 
-    bool HasPlayerWon(BC.Player player)
+    bool HasPlayerWon(Player player)
     {
         return (NumCupsPlayerHasWon(player) >= 3);
     }
 
     void UpdateCubeCounts()
     {
-        for (BC.Player player = BC.Player.Left; player < BC.Player.Count; ++player)
+        for (Player player = Player.Left; player < Player.Count; ++player)
             AwardCupsToPlayer(player);
 
         // Do wildcards after cups are awarded 
-        for (BC.Player player = BC.Player.Left; player < BC.Player.Count; ++player)
+        for (Player player = Player.Left; player < Player.Count; ++player)
             UpdateWildcardCubesForPlayer(player);
 
-        for (BC.Player player = BC.Player.Left; player < BC.Player.Count; ++player)
+        for (Player player = Player.Left; player < Player.Count; ++player)
             UpdateCubeCountsUIForPlayer(player);
 
         ResetUnclaimedCups();
@@ -767,7 +767,7 @@ public class GameLogic : MonoBehaviour
         int wildcardCount = m_playerWildcardCubeCounts[playerIndex];
         for (int cubeIndex = 0; cubeIndex < GameLogic.CubeTypeCount; ++cubeIndex)
         {
-            if (!IsCupWon((BC.CupCardCubeColour)cubeIndex))
+            if (!IsCupWon((CupCardCubeColour)cubeIndex))
             {
                 int cubeValue = m_playerCubeCounts[playerIndex, cubeIndex];
                 var cubeCountToWin = m_cubeWinningCounts[cubeIndex];
@@ -779,14 +779,14 @@ public class GameLogic : MonoBehaviour
         }
     }
 
-    void AwardCupsToPlayer(BC.Player player)
+    void AwardCupsToPlayer(Player player)
     {
         int playerIndex = (int)player;
         for (int cupIndex = 0; cupIndex < GameLogic.CubeTypeCount; ++cupIndex)
         {
             int cubeValue = m_playerCubeCounts[playerIndex, cupIndex];
             var cubeCountToWin = m_cubeWinningCounts[cupIndex];
-            BC.CupCardCubeColour cubeType = (BC.CupCardCubeColour)cupIndex;
+            CupCardCubeColour cubeType = (CupCardCubeColour)cupIndex;
             if (cubeValue >= cubeCountToWin)
             {
                 AwardCupToPlayer(player, cubeType);
@@ -795,12 +795,12 @@ public class GameLogic : MonoBehaviour
         }
     }
 
-    void UpdateWildcardCubesForPlayer(BC.Player player)
+    void UpdateWildcardCubesForPlayer(Player player)
     {
         int playerIndex = (int)player;
         for (int cubeIndex = 0; cubeIndex < GameLogic.CubeTypeCount; ++cubeIndex)
         {
-            BC.CupCardCubeColour cubeType = (BC.CupCardCubeColour)cubeIndex;
+            CupCardCubeColour cubeType = (CupCardCubeColour)cubeIndex;
             if (IsCupWon(cubeType))
             {
                 var cubeValue = m_playerCubeCounts[playerIndex, cubeIndex];
@@ -812,7 +812,7 @@ public class GameLogic : MonoBehaviour
         }
     }
 
-    void UpdateCubeCountsUIForPlayer(BC.Player player)
+    void UpdateCubeCountsUIForPlayer(Player player)
     {
         int playerIndex = (int)player;
         for (int cubeIndex = 0; cubeIndex < GameLogic.CubeTypeCount; ++cubeIndex)
@@ -887,7 +887,7 @@ public class GameLogic : MonoBehaviour
     {
         for (int cubeIndex = 0; cubeIndex < GameLogic.CubeTypeCount; ++cubeIndex)
         {
-            if (!IsCupWon((BC.CupCardCubeColour)cubeIndex))
+            if (!IsCupWon((CupCardCubeColour)cubeIndex))
             {
                 if (m_unclaimedCupButtons[cubeIndex].interactable)
                     return true;
@@ -915,13 +915,13 @@ public class GameLogic : MonoBehaviour
     {
         HidePlayerGenericButtons();
         HideHands();
-        if (m_lastRaceWinner != BC.Player.Unknown)
+        if (m_lastRaceWinner != Player.Unknown)
             m_currentPlayer = m_lastRaceWinner;
 
         m_currentPlayer++;
-        if (m_currentPlayer == BC.Player.Count)
-            m_currentPlayer = BC.Player.Left;
-        m_lastRaceWinner = BC.Player.Unknown;
+        if (m_currentPlayer == Player.Count)
+            m_currentPlayer = Player.Left;
+        m_lastRaceWinner = Player.Unknown;
         StartPlayerTurn();
     }
 
@@ -957,21 +957,21 @@ public class GameLogic : MonoBehaviour
     void CreateFullDeck()
     {
         int[][] allCardValues = new int[GameLogic.CubeTypeCount][];
-        allCardValues[(int)BC.CupCardCubeColour.Grey] = new int[] { 1, 4, 7, 10, 13 };
-        allCardValues[(int)BC.CupCardCubeColour.Blue] = new int[] { 1, 3, 5, 7, 9, 11, 13 };
-        allCardValues[(int)BC.CupCardCubeColour.Green] = new int[] { 1, 2, 4, 6, 7, 8, 10, 12, 13 };
-        allCardValues[(int)BC.CupCardCubeColour.Yellow] = new int[] { 1, 2, 3, 5, 6, 7, 8, 9, 11, 12, 13 };
-        allCardValues[(int)BC.CupCardCubeColour.Red] = new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 };
+        allCardValues[(int)CupCardCubeColour.Grey] = new int[] { 1, 4, 7, 10, 13 };
+        allCardValues[(int)CupCardCubeColour.Blue] = new int[] { 1, 3, 5, 7, 9, 11, 13 };
+        allCardValues[(int)CupCardCubeColour.Green] = new int[] { 1, 2, 4, 6, 7, 8, 10, 12, 13 };
+        allCardValues[(int)CupCardCubeColour.Yellow] = new int[] { 1, 2, 3, 5, 6, 7, 8, 9, 11, 12, 13 };
+        allCardValues[(int)CupCardCubeColour.Red] = new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 };
 
         int cardIndex = 0;
         for (int colour = 0; colour < GameLogic.CubeTypeCount; ++colour)
         {
             int[] cardValues = allCardValues[colour];
             if (m_cubeCurrentCounts[colour] != cardValues.Length)
-                Debug.LogError((BC.CupCardCubeColour)colour + " CardValues length does not match cubeCounts");
+                Debug.LogError((CupCardCubeColour)colour + " CardValues length does not match cubeCounts");
             foreach (int v in cardValues)
             {
-                m_fullDeck[cardIndex] = new Card((BC.CupCardCubeColour)colour, v);
+                m_fullDeck[cardIndex] = new Card((CupCardCubeColour)colour, v);
                 ++cardIndex;
             }
         }
@@ -1015,7 +1015,7 @@ public class GameLogic : MonoBehaviour
         return card;
     }
 
-    void ReplacePlayerCardInHand(BC.Player player, int cardIndex)
+    void ReplacePlayerCardInHand(Player player, int cardIndex)
     {
         Card card = DrawCard();
         if (card == null)
@@ -1030,12 +1030,12 @@ public class GameLogic : MonoBehaviour
         {
             for (int i = 0; i < GameLogic.HandSize; ++i)
             {
-                ReplacePlayerCardInHand((BC.Player)player, i);
+                ReplacePlayerCardInHand((Player)player, i);
             }
         }
     }
 
-    void ShowHand(BC.Player player)
+    void ShowHand(Player player)
     {
         m_playerHandGOs[(int)player].SetActive(true);
     }
@@ -1043,15 +1043,15 @@ public class GameLogic : MonoBehaviour
     void HideHands()
     {
         for (int player = 0; player < GameLogic.PlayerCount; ++player)
-            HideHand((BC.Player)player);
+            HideHand((Player)player);
     }
 
-    void HideHand(BC.Player player)
+    void HideHand(Player player)
     {
         m_playerHandGOs[(int)player].SetActive(false);
     }
 
-    void UpdatePlayerCardUI(BC.Player player, int cardIndex)
+    void UpdatePlayerCardUI(Player player, int cardIndex)
     {
         int playerIndex = (int)player;
         Card card = m_playerHands[playerIndex, cardIndex];
@@ -1062,7 +1062,7 @@ public class GameLogic : MonoBehaviour
         m_playerCardValues[playerIndex, cardIndex].text = text;
         m_playerCardOutlines[playerIndex, cardIndex].color = Color.black;
         m_playerCardBackgrounds[playerIndex, cardIndex].color = colour;
-        var textColour = (card.Colour == BC.CupCardCubeColour.Yellow) ? Color.black : Color.white;
+        var textColour = (card.Colour == CupCardCubeColour.Yellow) ? Color.black : Color.white;
         m_playerCardValues[playerIndex, cardIndex].color = textColour;
     }
 
@@ -1082,11 +1082,11 @@ public class GameLogic : MonoBehaviour
         m_random = new System.Random();
         m_cubeCurrentCounts = new int[GameLogic.CubeTypeCount];
         m_cubeStartingCounts = new int[GameLogic.CubeTypeCount];
-        m_cubeStartingCounts[(int)BC.CupCardCubeColour.Grey] = 5;
-        m_cubeStartingCounts[(int)BC.CupCardCubeColour.Blue] = 7;
-        m_cubeStartingCounts[(int)BC.CupCardCubeColour.Green] = 9;
-        m_cubeStartingCounts[(int)BC.CupCardCubeColour.Yellow] = 11;
-        m_cubeStartingCounts[(int)BC.CupCardCubeColour.Red] = 13;
+        m_cubeStartingCounts[(int)CupCardCubeColour.Grey] = 5;
+        m_cubeStartingCounts[(int)CupCardCubeColour.Blue] = 7;
+        m_cubeStartingCounts[(int)CupCardCubeColour.Green] = 9;
+        m_cubeStartingCounts[(int)CupCardCubeColour.Yellow] = 11;
+        m_cubeStartingCounts[(int)CupCardCubeColour.Red] = 13;
 
         m_cubeWinningCounts = new int[GameLogic.CubeTypeCount];
         for (int cubeType = 0; cubeType < GameLogic.CubeTypeCount; ++cubeType)
@@ -1104,14 +1104,14 @@ public class GameLogic : MonoBehaviour
         m_cardCubeColours[3] = Color.yellow;
         m_cardCubeColours[4] = Color.red;
 
-        m_cubes = new BC.CupCardCubeColour[CubesTotalCount];
+        m_cubes = new CupCardCubeColour[CubesTotalCount];
         m_races = new Race[GameLogic.RacesCount];
         m_state = GameState.Initialising;
 
         m_fullDeck = new Card[CubesTotalCount];
         m_drawDeck = new Queue<Card>();
         m_discardDeck = new Queue<Card>();
-        m_currentPlayer = BC.Player.Unknown;
+        m_currentPlayer = Player.Unknown;
 
         m_chosenHandCards = new int[4];
 
@@ -1130,7 +1130,7 @@ public class GameLogic : MonoBehaviour
         m_playerCups = new bool[GameLogic.PlayerCount, GameLogic.CubeTypeCount];
         m_playerGenericButtons = new GameObject[GameLogic.PlayerCount];
 
-        m_cupOwner = new BC.Player[GameLogic.CubeTypeCount];
+        m_cupOwner = new Player[GameLogic.CubeTypeCount];
         m_unclaimedCupGOs = new GameObject[GameLogic.CubeTypeCount];
         m_unclaimedCupButtons = new Button[GameLogic.CubeTypeCount];
     }
@@ -1165,7 +1165,7 @@ public class GameLogic : MonoBehaviour
                 cupWinCount += (m_playerCups[player, cupType] == true) ? 1 : 0;
             if (cupWinCount > 1)
             {
-                Debug.LogError("Cup " + (BC.CupCardCubeColour)cupType + " Invalid cupWinCount " + cupWinCount);
+                Debug.LogError("Cup " + (CupCardCubeColour)cupType + " Invalid cupWinCount " + cupWinCount);
                 allOk = false;
             }
         }
@@ -1182,19 +1182,19 @@ public class GameLogic : MonoBehaviour
             var cube = m_cubes[i];
             switch (cube)
             {
-                case BC.CupCardCubeColour.Grey:
+                case CupCardCubeColour.Grey:
                     cubeCounts[(int)cube]++;
                     break;
-                case BC.CupCardCubeColour.Blue:
+                case CupCardCubeColour.Blue:
                     cubeCounts[(int)cube]++;
                     break;
-                case BC.CupCardCubeColour.Green:
+                case CupCardCubeColour.Green:
                     cubeCounts[(int)cube]++;
                     break;
-                case BC.CupCardCubeColour.Yellow:
+                case CupCardCubeColour.Yellow:
                     cubeCounts[(int)cube]++;
                     break;
-                case BC.CupCardCubeColour.Red:
+                case CupCardCubeColour.Red:
                     cubeCounts[(int)cube]++;
                     break;
                 default:
@@ -1208,7 +1208,7 @@ public class GameLogic : MonoBehaviour
             if (m_cubeCurrentCounts[cubeType] != cubeCounts[cubeType])
             {
                 allOk = false;
-                Debug.LogError("Current Cube count is incorrect " + (BC.CupCardCubeColour)cubeType + " " + cubeCounts[cubeType]);
+                Debug.LogError("Current Cube count is incorrect " + (CupCardCubeColour)cubeType + " " + cubeCounts[cubeType]);
             }
         }
         //TODO: count cubes in bag + races + players must match the totals
@@ -1220,9 +1220,9 @@ public class GameLogic : MonoBehaviour
     {
         int playerStart = (int)m_currentPlayer;
         int playerEnd = playerStart + 1;
-        if (m_currentPlayer == BC.Player.Unknown)
+        if (m_currentPlayer == Player.Unknown)
         {
-            playerStart = (int)BC.Player.Left;
+            playerStart = (int)Player.Left;
             playerEnd = GameLogic.PlayerCount;
         }
         for (int p = playerStart; p < playerEnd; ++p)
@@ -1240,7 +1240,7 @@ public class GameLogic : MonoBehaviour
             m_playerGenericButtons[p].SetActive(false);
     }
 
-    void DeSelectCard(BC.Player player, int cardIndex)
+    void DeSelectCard(Player player, int cardIndex)
     {
         if (cardIndex < 0)
         {
@@ -1250,7 +1250,7 @@ public class GameLogic : MonoBehaviour
         m_playerCardOutlines[(int)player, cardIndex].color = Color.black;
     }
 
-    void SelectCard(BC.Player player, int cardIndex)
+    void SelectCard(Player player, int cardIndex)
     {
         if (cardIndex < 0)
         {

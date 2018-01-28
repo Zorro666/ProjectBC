@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
+using BC;
 
 public class Race : MonoBehaviour 
 {
@@ -18,7 +19,7 @@ public class Race : MonoBehaviour
     Card[,] m_cards;
     int[] m_cardsPlayed;
     int[,] m_cardsRemaining;
-    BC.Player m_winner;
+    Player m_winner;
 
     GameObject[,] m_playedCardsGO;
     Image[,] m_playedCardsBackground;
@@ -26,7 +27,7 @@ public class Race : MonoBehaviour
     Image m_background;
     Image[] m_cubeImages;
 
-    public BC.Player Winner
+    public Player Winner
     {
         get { return m_winner; }
     }
@@ -64,7 +65,7 @@ public class Race : MonoBehaviour
 
         for (int player = 0; player < GameLogic.PlayerCount; ++player)
         {
-            var playedCardsRootName = raceCardName + (BC.Player)player + "Card";
+            var playedCardsRootName = raceCardName + (Player)player + "Card";
             for (int j = 0; j < NumberOfCubes; ++j)
             {
                 var cubeIndex = j + 1;
@@ -181,19 +182,19 @@ public class Race : MonoBehaviour
         else if (m_state == State.Highest)
             m_background.color = m_gamelogic.RaceHighestColour;
 
-        m_winner = BC.Player.Unknown;
+        m_winner = Player.Unknown;
     }
 
-    BC.Player ComputeWinner(BC.Player currentPlayer)
+    Player ComputeWinner(Player currentPlayer)
     {
-        BC.Player maxScorePlayer = BC.Player.Unknown;
+        Player maxScorePlayer = Player.Unknown;
         int maxScoreValue = -1;
-        BC.Player minScorePlayer = BC.Player.Unknown;
+        Player minScorePlayer = Player.Unknown;
         int minScoreValue = 9999;
         for (int playerIndex = 0; playerIndex < GameLogic.PlayerCount; ++playerIndex)
         {
             int score = 0;
-            BC.Player player = (BC.Player)playerIndex;
+            Player player = (Player)playerIndex;
             for (int cardIndex = 0; cardIndex < NumberOfCubes; ++cardIndex)
                 score += m_cards[playerIndex, cardIndex].Value;
 
@@ -226,7 +227,7 @@ public class Race : MonoBehaviour
         if (m_state == State.Highest)
             return maxScorePlayer;
         Debug.LogError("m_state is not Lowest or Highest");
-        return BC.Player.Unknown;
+        return Player.Unknown;
     }
 
 	public void Initialise() 
@@ -243,7 +244,7 @@ public class Race : MonoBehaviour
         StartRace();
     }
 
-    public void FinishRace(BC.Player currentPlayer)
+    public void FinishRace(Player currentPlayer)
     {
         m_winner = ComputeWinner(currentPlayer);
         Debug.Log(m_state + " Player " + m_winner + " won");
@@ -274,11 +275,11 @@ public class Race : MonoBehaviour
         m_playedCardsValue[playerIndex, cardIndex].text = text;
         var colour = m_gamelogic.GetCardCubeColour(card.Colour);
         m_playedCardsBackground[playerIndex, cardIndex].color = colour;
-        var textColour = (card.Colour == BC.CupCardCubeColour.Yellow) ? Color.black : Color.white;
+        var textColour = (card.Colour == CupCardCubeColour.Yellow) ? Color.black : Color.white;
         m_playedCardsValue[playerIndex, cardIndex].color = textColour;
     }
 
-    public bool PlayCard(BC.Player player, Card card, BC.Player currentPlayer)
+    public bool PlayCard(Player player, Card card, Player currentPlayer)
     {
         //Debug.Log(name + " PlayCard " + player + " " + card.Colour + " " + card.Value);
         if (m_state == State.Finished)
