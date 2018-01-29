@@ -9,19 +9,18 @@ public class GameUI : MonoBehaviour
     GameObject[] m_unclaimedCupGOs;
     Button[] m_unclaimedCupButtons;
 
+    //TODO: make a Player class and store this data per Player
     Text[,] m_playerCubeCountsTexts;
     Text[] m_playerWildcardCubeCountTexts;
     GameObject[] m_playerHandGOs;
     Image[,] m_playerCardOutlines;
     Image[,] m_playerCardBackgrounds;
     Text[,] m_playerCardValues;
-
-#if JAKE_ZERO
-    //TODO: make a Player class and store this data per Player
-    Card[,] m_playerHands;
     GameObject[,] m_playerCupGOs;
     Image[,] m_playerCupImages;
     Text[,] m_playerCupValues;
+
+#if JAKE_ZERO
     GameObject[] m_playerGenericButtons;
 #endif
 
@@ -80,6 +79,19 @@ public class GameUI : MonoBehaviour
         m_playerCardBackgrounds[playerIndex, cardIndex].color = colour;
     }
 
+    public void SetPlayerCup(int playerIndex, int cupDisplayIndex, CupCardCubeColour cupType, int value, Color colour)
+    {
+        m_playerCupImages[playerIndex, cupDisplayIndex].color = colour;
+        m_playerCupValues[playerIndex, cupDisplayIndex].text = value.ToString();
+        var textColour = (cupType == CupCardCubeColour.Yellow) ? Color.black : Color.white;
+        m_playerCupValues[playerIndex, cupDisplayIndex].color = textColour;
+    }
+
+    public void SetPlayerCupActive(int playerIndex, int cupIndex, bool active)
+    {
+        m_playerCupGOs[playerIndex, cupIndex].SetActive(active);
+    }
+
     void Awake()
     {
         m_unclaimedCupGOs = new GameObject[GameLogic.CubeTypeCount];
@@ -90,6 +102,9 @@ public class GameUI : MonoBehaviour
         m_playerCardOutlines = new Image[GameLogic.PlayerCount, GameLogic.HandSize];
         m_playerCardBackgrounds = new Image[GameLogic.PlayerCount, GameLogic.HandSize];
         m_playerCardValues = new Text[GameLogic.PlayerCount, GameLogic.HandSize];
+        m_playerCupGOs = new GameObject[GameLogic.PlayerCount, GameLogic.MaxCupsPerPlayer];
+        m_playerCupImages = new Image[GameLogic.PlayerCount, GameLogic.MaxCupsPerPlayer];
+        m_playerCupValues = new Text[GameLogic.PlayerCount, GameLogic.MaxCupsPerPlayer];
     }
 
     public void Initialise()
@@ -114,6 +129,24 @@ public class GameUI : MonoBehaviour
             m_playerHandGOs[player] = GameObject.Find(playerHandRootName);
             if (m_playerHandGOs[player] == null)
                 Debug.LogError("Can't find Player Hand UI GameObject " + (Player)player + " " + playerHandRootName);
+
+            var playerCupsRootName = playerUIRootName + "CupsBackground/";
+            for (var cupIndex = 0; cupIndex < GameLogic.MaxCupsPerPlayer; ++cupIndex)
+            {
+                var playerCupIndex = (cupIndex + 1);
+                var cupImageName = playerCupsRootName + "Cup" + playerCupIndex;
+                m_playerCupGOs[player, cupIndex] = GameObject.Find(cupImageName);
+                if (m_playerCupGOs[player, cupIndex] == null)
+                    Debug.LogError("Can't find Cup " + playerCupIndex + " Image GameObject " + cupImageName);
+
+                var cupValueName = cupImageName + "/Value";
+                var cupValueGO = GameObject.Find(cupValueName);
+                if (cupValueGO == null)
+                    Debug.LogError("Can't find Cup " + playerCupIndex + " Value GameObject " + cupValueName);
+                m_playerCupValues[player, cupIndex] = cupValueGO.GetComponent<Text>();
+                if (m_playerCupValues[player, cupIndex] == null)
+                    Debug.LogError("Can't find Cup " + playerCupIndex + " Value Component");
+            }
 
             for (var card = 0; card < GameLogic.HandSize; ++card)
             {

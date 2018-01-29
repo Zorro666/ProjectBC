@@ -60,9 +60,6 @@ public class GameLogic : MonoBehaviour
     Card[,] m_playerHands;
 
     //TODO: make a Player class and store this data per Player
-    GameObject[,] m_playerCupGOs;
-    Image[,] m_playerCupImages;
-    Text[,] m_playerCupValues;
     GameObject[] m_playerGenericButtons;
 
     GameUI m_gameUI;
@@ -550,34 +547,6 @@ public class GameLogic : MonoBehaviour
         for (var player = 0; player < GameLogic.PlayerCount; ++player)
         {
             var playerUIRootName = gameBoardUIRootName + (Player)player + "Player/";
-            var playerCubesBackgroundRootName = playerUIRootName + "CubesBackground/";
-            var playerHandRootName = playerUIRootName + "Hand/";
-
-            for (var card = 0; card < GameLogic.HandSize; ++card)
-            {
-                var cardIndex = card + 1;
-                var playerCardRootName = playerHandRootName + "Card" + cardIndex.ToString() + "/";
-
-            }
-            var playerCupsRootName = playerUIRootName + "CupsBackground/";
-            for (var cupIndex = 0; cupIndex < GameLogic.MaxCupsPerPlayer; ++cupIndex)
-            {
-                var playerCupIndex = (cupIndex + 1);
-                var cupImageName = playerCupsRootName + "Cup" + playerCupIndex;
-                m_playerCupGOs[player,cupIndex] = GameObject.Find(cupImageName);
-                if (m_playerCupGOs[player, cupIndex] == null)
-                    Debug.LogError("Can't find Cup " + playerCupIndex + " Image GameObject " + cupImageName);
-                m_playerCupImages[player, cupIndex] = m_playerCupGOs[player,cupIndex].GetComponent<Image>();
-                if (m_playerCupImages[player, cupIndex] == null)
-                    Debug.LogError("Can't find Cup " + playerCupIndex + " Image Component");
-                var cupValueName = cupImageName + "/Value";
-                var cupValueGO = GameObject.Find(cupValueName);
-                if (cupValueGO == null)
-                    Debug.LogError("Can't find Cup " + playerCupIndex + " Value GameObject " + cupValueName);
-                m_playerCupValues[player, cupIndex] = cupValueGO.GetComponent<Text>();
-                if (m_playerCupValues[player, cupIndex] == null)
-                    Debug.LogError("Can't find Cup " + playerCupIndex + " Value Component");
-            }
             var playerGenericButtonName = playerUIRootName + "GenericButton";
             m_playerGenericButtons[player] = GameObject.Find(playerGenericButtonName);
             if (m_playerGenericButtons[player] == null)
@@ -626,7 +595,7 @@ public class GameLogic : MonoBehaviour
             }
             for (var cupIndex = 0; cupIndex < GameLogic.MaxCupsPerPlayer; ++cupIndex)
             {
-                m_playerCupGOs[player, cupIndex].SetActive(false);
+                m_gameUI.SetPlayerCupActive(player, cupIndex, false);
                 m_playerCups[player, cupIndex] = false;
             }
             m_playerWildcardCubeCounts[player] = 0;
@@ -658,12 +627,10 @@ public class GameLogic : MonoBehaviour
         var cupDisplayIndex = NumCupsPlayerHasWon(player) - 1;
         if (cupDisplayIndex < GameLogic.MaxCupsPerPlayer)
         {
-            m_playerCupGOs[playerIndex, cupDisplayIndex].SetActive(true);
-            m_playerCupImages[playerIndex, cupDisplayIndex].color = GetCardCubeColour(cupColour);
             var cubeCountToWin = m_cubeWinningCounts[cupIndex];
-            m_playerCupValues[playerIndex, cupDisplayIndex].text = cubeCountToWin.ToString();
-            var textColour = (cupColour == CupCardCubeColour.Yellow) ? Color.black : Color.white;
-            m_playerCupValues[playerIndex, cupDisplayIndex].color = textColour;
+            var colour = GetCardCubeColour(cupColour);
+            m_gameUI.SetPlayerCupActive(playerIndex, cupDisplayIndex, true);
+            m_gameUI.SetPlayerCup(playerIndex, cupDisplayIndex, cupColour, cubeCountToWin, colour);
         }
     }
 
@@ -1044,9 +1011,6 @@ public class GameLogic : MonoBehaviour
         m_playerCubeCounts = new int[GameLogic.PlayerCount, GameLogic.CubeTypeCount];
         m_playerWildcardCubeCounts = new int[GameLogic.PlayerCount];
         m_playerHands = new Card[GameLogic.PlayerCount, GameLogic.HandSize];
-        m_playerCupGOs = new GameObject[GameLogic.PlayerCount, GameLogic.MaxCupsPerPlayer];
-        m_playerCupImages = new Image[GameLogic.PlayerCount, GameLogic.MaxCupsPerPlayer];
-        m_playerCupValues = new Text[GameLogic.PlayerCount, GameLogic.MaxCupsPerPlayer];
         m_playerCups = new bool[GameLogic.PlayerCount, GameLogic.CubeTypeCount];
         m_playerGenericButtons = new GameObject[GameLogic.PlayerCount];
 
