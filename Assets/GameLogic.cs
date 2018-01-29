@@ -60,9 +60,6 @@ public class GameLogic : MonoBehaviour
     Card[,] m_playerHands;
 
     //TODO: make a Player class and store this data per Player
-    Text[] m_playerWildcardCubeCountTexts;
-    GameObject[] m_playerHandGOs;
-    Image[,] m_playerCardOutlines;
     Image[,] m_playerCardBackgrounds;
     Text[,] m_playerCardValues;
     GameObject[,] m_playerCupGOs;
@@ -282,7 +279,6 @@ public class GameLogic : MonoBehaviour
             return;
         }
 
-        //var cardIndex = m_random.Next(GameLogic.HandSize);
         var playerIndex = (int)m_currentPlayer;
         var cardIndex = m_chosenHandCards[0];
         if ((cardIndex < 0) || (cardIndex >= GameLogic.HandSize))
@@ -428,15 +424,6 @@ public class GameLogic : MonoBehaviour
 
     void DiscardSingleCard()
     {
-/*
-        var cardIndex = m_chosenHandCards[0];
-        if (cardIndex >= 0)
-        {
-            var playerIndex = (int)m_currentPlayer;
-            var card = m_playerHands[playerIndex, cardIndex];
-            Debug.Log("Discard[" + m_chosenHandCardCount + "] Card Index " + cardIndex + " Card Colour " + card.Colour + " Value " + card.Value);
-        }
-*/
         SetPlayerGenericButtonText("Discard " + m_chosenHandCardCount + " Cards from Hand");
         ShowPlayerGenericButton();
         m_turnState = TurnState.PickCardsFromHandToDiscard;
@@ -566,28 +553,12 @@ public class GameLogic : MonoBehaviour
         {
             var playerUIRootName = gameBoardUIRootName + (Player)player + "Player/";
             var playerCubesBackgroundRootName = playerUIRootName + "CubesBackground/";
-            var wildcardCubeCountText = playerCubesBackgroundRootName + "White";
-            var wildcardCubeCountGO = GameObject.Find(wildcardCubeCountText);
-            if (wildcardCubeCountGO == null)
-                Debug.LogError("Can't find wildcard cube count GameObject " + wildcardCubeCountText);
-            m_playerWildcardCubeCountTexts[player] = wildcardCubeCountGO.GetComponent<Text>();
-            if (m_playerWildcardCubeCountTexts[player] == null)
-                Debug.LogError("Can't find wildcard cube count UI Text Component");
-
             var playerHandRootName = playerUIRootName + "Hand/";
-            m_playerHandGOs[player] = GameObject.Find(playerHandRootName);
-            if (m_playerHandGOs[player] == null)
-                Debug.LogError("Can't find Player Hand UI GameObject " + (Player)player + " " + playerHandRootName);
+
             for (var card = 0; card < GameLogic.HandSize; ++card)
             {
                 var cardIndex = card + 1;
                 var playerCardRootName = playerHandRootName + "Card" + cardIndex.ToString() + "/";
-                var playerCardOutlineGO = GameObject.Find(playerCardRootName);
-                if (playerCardOutlineGO == null)
-                    Debug.LogError("Can't find PlayerCardOutlineGO " + playerCardRootName);
-                m_playerCardOutlines[player, card] = playerCardOutlineGO.GetComponent<Image>();
-                if (m_playerCardOutlines[player, card] == null)
-                    Debug.LogError("Can't find Player " + (Player)player + " Card[" + cardIndex + " Outline Image " + playerCardRootName);
 
                 var playerCardBackgroundName = playerCardRootName + "Background";
                 var playerCardBackgroundGO = GameObject.Find(playerCardBackgroundName);
@@ -795,7 +766,7 @@ public class GameLogic : MonoBehaviour
             m_gameUI.SetPlayerCubeCountValue(playerIndex, cubeIndex, cubeValue);
         }
         var wildcardCubeCount = m_playerWildcardCubeCounts[playerIndex];
-        m_playerWildcardCubeCountTexts[playerIndex].text = wildcardCubeCount.ToString();
+        m_gameUI.SetPlayerWildcardCubeCountValue(playerIndex, wildcardCubeCount);
     }
 
     void InGame()
@@ -1012,7 +983,7 @@ public class GameLogic : MonoBehaviour
 
     void ShowHand(Player player)
     {
-        m_playerHandGOs[(int)player].SetActive(true);
+        m_gameUI.SetPlayerHandActive((int)player, true);
     }
 
     void HideHands()
@@ -1023,7 +994,7 @@ public class GameLogic : MonoBehaviour
 
     void HideHand(Player player)
     {
-        m_playerHandGOs[(int)player].SetActive(false);
+        m_gameUI.SetPlayerHandActive((int)player, false);
     }
 
     void UpdatePlayerCardUI(Player player, int cardIndex)
@@ -1035,7 +1006,7 @@ public class GameLogic : MonoBehaviour
         var colour = GetCardCubeColour(card.Colour);
 
         m_playerCardValues[playerIndex, cardIndex].text = text;
-        m_playerCardOutlines[playerIndex, cardIndex].color = Color.black;
+        m_gameUI.SetPlayerCardHighlighted(playerIndex, cardIndex, false);
         m_playerCardBackgrounds[playerIndex, cardIndex].color = colour;
         var textColour = (card.Colour == CupCardCubeColour.Yellow) ? Color.black : Color.white;
         m_playerCardValues[playerIndex, cardIndex].color = textColour;
@@ -1091,11 +1062,8 @@ public class GameLogic : MonoBehaviour
         m_chosenHandCards = new int[4];
 
         m_playerCubeCounts = new int[GameLogic.PlayerCount, GameLogic.CubeTypeCount];
-        m_playerWildcardCubeCountTexts = new Text[GameLogic.PlayerCount];
         m_playerWildcardCubeCounts = new int[GameLogic.PlayerCount];
-        m_playerHandGOs = new GameObject[GameLogic.PlayerCount];
         m_playerCardBackgrounds = new Image[GameLogic.PlayerCount, GameLogic.HandSize];
-        m_playerCardOutlines = new Image[GameLogic.PlayerCount, GameLogic.HandSize];
         m_playerCardValues = new Text[GameLogic.PlayerCount, GameLogic.HandSize];
         m_playerHands = new Card[GameLogic.PlayerCount, GameLogic.HandSize];
         m_playerCupGOs = new GameObject[GameLogic.PlayerCount, GameLogic.MaxCupsPerPlayer];
@@ -1219,7 +1187,7 @@ public class GameLogic : MonoBehaviour
             Debug.LogError("Invalid cardIndex " + cardIndex);
             return;
         }
-        m_playerCardOutlines[(int)player, cardIndex].color = Color.black;
+        m_gameUI.SetPlayerCardHighlighted((int)player, cardIndex, false);
     }
 
     void SelectCard(Player player, int cardIndex)
@@ -1229,7 +1197,7 @@ public class GameLogic : MonoBehaviour
             Debug.LogError("Invalid cardIndex " + cardIndex);
             return;
         }
-        m_playerCardOutlines[(int)player, cardIndex].color = Color.white;
+        m_gameUI.SetPlayerCardHighlighted((int)player, cardIndex, true);
     }
 
     void Update() 
