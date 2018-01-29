@@ -13,11 +13,11 @@ public class GameUI : MonoBehaviour
     Text[] m_playerWildcardCubeCountTexts;
     GameObject[] m_playerHandGOs;
     Image[,] m_playerCardOutlines;
+    Image[,] m_playerCardBackgrounds;
+    Text[,] m_playerCardValues;
 
 #if JAKE_ZERO
     //TODO: make a Player class and store this data per Player
-    Image[,] m_playerCardBackgrounds;
-    Text[,] m_playerCardValues;
     Card[,] m_playerHands;
     GameObject[,] m_playerCupGOs;
     Image[,] m_playerCupImages;
@@ -71,6 +71,15 @@ public class GameUI : MonoBehaviour
         m_playerCardOutlines[playerIndex, cardIndex].color = highlighted ? Color.white : Color.black;
     }
 
+    public void SetPlayerCard(int playerIndex, int cardIndex, Card card, Color colour)
+    {
+        string text = card.Value.ToString();
+        m_playerCardValues[playerIndex, cardIndex].text = text;
+        var textColour = (card.Colour == CupCardCubeColour.Yellow) ? Color.black : Color.white;
+        m_playerCardValues[playerIndex, cardIndex].color = textColour;
+        m_playerCardBackgrounds[playerIndex, cardIndex].color = colour;
+    }
+
     void Awake()
     {
         m_unclaimedCupGOs = new GameObject[GameLogic.CubeTypeCount];
@@ -79,6 +88,8 @@ public class GameUI : MonoBehaviour
         m_playerWildcardCubeCountTexts = new Text[GameLogic.PlayerCount];
         m_playerHandGOs = new GameObject[GameLogic.PlayerCount];
         m_playerCardOutlines = new Image[GameLogic.PlayerCount, GameLogic.HandSize];
+        m_playerCardBackgrounds = new Image[GameLogic.PlayerCount, GameLogic.HandSize];
+        m_playerCardValues = new Text[GameLogic.PlayerCount, GameLogic.HandSize];
     }
 
     public void Initialise()
@@ -115,6 +126,20 @@ public class GameUI : MonoBehaviour
                 m_playerCardOutlines[player, card] = playerCardOutlineGO.GetComponent<Image>();
                 if (m_playerCardOutlines[player, card] == null)
                     Debug.LogError("Can't find Player " + (Player)player + " Card[" + cardIndex + " Outline Image " + playerCardRootName);
+
+                var playerCardBackgroundName = playerCardRootName + "Background";
+                var playerCardBackgroundGO = GameObject.Find(playerCardBackgroundName);
+                if (playerCardBackgroundGO == null)
+                    Debug.LogError("Can't find PlayerCardBackgroundGO " + playerCardBackgroundName);
+                m_playerCardBackgrounds[player, card] = playerCardBackgroundGO.GetComponent<Image>();
+
+                var playerCardValueName = playerCardBackgroundName + "/Value";
+                var playerCardValueGO = GameObject.Find(playerCardValueName);
+                if (playerCardValueGO == null)
+                    Debug.LogError("Can't find PlayerCardValueGO " + playerCardValueName);
+                m_playerCardValues[player, card] = playerCardValueGO.GetComponent<Text>();
+                if (m_playerCardValues[player, card] == null)
+                    Debug.LogError("Can't find Player " + (Player)player + " Card[" + cardIndex + " Value Text " + playerCardValueName);
             }
 
             var playerCubesBackgroundRootName = playerUIRootName + "CubesBackground/";

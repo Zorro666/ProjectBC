@@ -60,8 +60,6 @@ public class GameLogic : MonoBehaviour
     Card[,] m_playerHands;
 
     //TODO: make a Player class and store this data per Player
-    Image[,] m_playerCardBackgrounds;
-    Text[,] m_playerCardValues;
     GameObject[,] m_playerCupGOs;
     Image[,] m_playerCupImages;
     Text[,] m_playerCupValues;
@@ -560,19 +558,6 @@ public class GameLogic : MonoBehaviour
                 var cardIndex = card + 1;
                 var playerCardRootName = playerHandRootName + "Card" + cardIndex.ToString() + "/";
 
-                var playerCardBackgroundName = playerCardRootName + "Background";
-                var playerCardBackgroundGO = GameObject.Find(playerCardBackgroundName);
-                if (playerCardBackgroundGO == null)
-                    Debug.LogError("Can't find PlayerCardBackgroundGO " + playerCardBackgroundName);
-                m_playerCardBackgrounds[player, card] = playerCardBackgroundGO.GetComponent<Image>();
-
-                var playerCardValueName = playerCardBackgroundName + "/Value";
-                var playerCardValueGO = GameObject.Find(playerCardValueName);
-                if (playerCardValueGO == null)
-                    Debug.LogError("Can't find PlayerCardValueGO " + playerCardValueName);
-                m_playerCardValues[player, card] = playerCardValueGO.GetComponent<Text>();
-                if (m_playerCardValues[player, card] == null)
-                    Debug.LogError("Can't find Player " + (Player)player + " Card[" + cardIndex + " Value Text " + playerCardValueName);
             }
             var playerCupsRootName = playerUIRootName + "CupsBackground/";
             for (var cupIndex = 0; cupIndex < GameLogic.MaxCupsPerPlayer; ++cupIndex)
@@ -1001,15 +986,10 @@ public class GameLogic : MonoBehaviour
     {
         var playerIndex = (int)player;
         Card card = m_playerHands[playerIndex, cardIndex];
-        string text = card.Value.ToString();
-        var cardColour = (int)card.Colour;
         var colour = GetCardCubeColour(card.Colour);
 
-        m_playerCardValues[playerIndex, cardIndex].text = text;
+        m_gameUI.SetPlayerCard(playerIndex, cardIndex, card, colour);
         m_gameUI.SetPlayerCardHighlighted(playerIndex, cardIndex, false);
-        m_playerCardBackgrounds[playerIndex, cardIndex].color = colour;
-        var textColour = (card.Colour == CupCardCubeColour.Yellow) ? Color.black : Color.white;
-        m_playerCardValues[playerIndex, cardIndex].color = textColour;
     }
 
     void ShuffleCubes()
@@ -1063,8 +1043,6 @@ public class GameLogic : MonoBehaviour
 
         m_playerCubeCounts = new int[GameLogic.PlayerCount, GameLogic.CubeTypeCount];
         m_playerWildcardCubeCounts = new int[GameLogic.PlayerCount];
-        m_playerCardBackgrounds = new Image[GameLogic.PlayerCount, GameLogic.HandSize];
-        m_playerCardValues = new Text[GameLogic.PlayerCount, GameLogic.HandSize];
         m_playerHands = new Card[GameLogic.PlayerCount, GameLogic.HandSize];
         m_playerCupGOs = new GameObject[GameLogic.PlayerCount, GameLogic.MaxCupsPerPlayer];
         m_playerCupImages = new Image[GameLogic.PlayerCount, GameLogic.MaxCupsPerPlayer];
