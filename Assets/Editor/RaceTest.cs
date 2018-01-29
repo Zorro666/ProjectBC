@@ -1,16 +1,18 @@
-﻿using UnityEngine.TestTools;
+﻿using UnityEngine;
+using UnityEngine.TestTools;
 using NUnit.Framework;
 using System.Collections;
 using BC;
 
 public class RaceTest 
 {
-    int GetCubesRemainingInBag()
+    int m_numCubesInBag;
+    int TestGetCubesRemainingInBag()
     {
-        return 10;
+        return m_numCubesInBag;
     }
 
-    CupCardCubeColour NextCube()
+    CupCardCubeColour TestNextCube()
     {
         return CupCardCubeColour.Red;
     }
@@ -21,8 +23,8 @@ public class RaceTest
         RaceUI raceUI = null;
         GameLogic gameLogic = null;
         raceLogic.Initialise(numberOfCubes, raceUI, 
-                             GetCubesRemainingInBag, 
-                             NextCube,
+                             TestGetCubesRemainingInBag, 
+                             TestNextCube,
                              gameLogic);
         return raceLogic;
     }
@@ -39,6 +41,33 @@ public class RaceTest
     {
         var raceLogic = CreateRace(numberOfCubes);
         Assert.That(raceLogic.Winner, Is.EqualTo(Player.Unknown));
+    }
+
+    [Test]
+    public void TheFirstOddRacesAreLowest([Values(1, 3)] int numberOfCubes)
+    {
+        m_numCubesInBag = 10;
+        var raceLogic = CreateRace(numberOfCubes);
+        raceLogic.NewGame();
+        Assert.That(raceLogic.State, Is.EqualTo(RaceState.Lowest));
+    }
+
+    [Test]
+    public void TheFirstEvenRacesAreHighest([Values(2, 4)] int numberOfCubes)
+    {
+        m_numCubesInBag = 10;
+        var raceLogic = CreateRace(numberOfCubes);
+        raceLogic.NewGame();
+        Assert.That(raceLogic.State, Is.EqualTo(RaceState.Highest));
+    }
+
+    [Test]
+    public void StartRaceSetsRaceToFinishedWhenNotEnoughCubesInBag([Values(1, 2, 3, 4)] int numberOfCubes)
+    {
+        m_numCubesInBag = 0;
+        var raceLogic = CreateRace(numberOfCubes);
+        raceLogic.StartRace();
+        Assert.That(raceLogic.State, Is.EqualTo(RaceState.Finished));
     }
 
     // Test
