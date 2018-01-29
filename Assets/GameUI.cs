@@ -1,79 +1,32 @@
-﻿using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
-using BC;
 
-public class GameLogic : MonoBehaviour
+public class GameUI : MonoBehaviour
 {
-    public Color RaceLowestColour;
-    public Color RaceHighestColour;
-    public Color RaceFinishedColour;
+    public Text StatusText;
 
-    enum GameState
+    public void SetStatusText(string text)
     {
-        Initialising,
-        NewGame,
-        InGame,
-        EndGame
+        StatusText.text = text;
     }
-
-    enum TurnState
-    {
-        StartingPlayerTurn,
-        PickCardFromHand,
-        PickCardsFromHandToDiscard,
-        PlayCardOnRace,
-        FinishingRace,
-        FinishingGame,
-        EndingPlayerTurn
-    }
-
-    System.Random m_random;
-    CupCardCubeColour[] m_cubes;
-    Color[] m_cardCubeColours;
-    int[] m_cubeCurrentCounts;
-    int[] m_cubeStartingCounts;
-    int[] m_cubeWinningCounts;
-    GameState m_state;
-    TurnState m_turnState;
-    Race[] m_races;
-    int m_frame;
-    int m_cubesRemainingCount;
-    int m_cubesTotalCount;
-    int m_chosenHandCardCount;
-    int[] m_chosenHandCards;
-    bool m_playerAlreadyDiscarded;
-    Player[] m_cupOwner;
-    Card[] m_fullDeck;
-    Queue<Card> m_drawDeck;
-    Queue<Card> m_discardDeck;
-    Player m_roundWinner;
-    Player m_currentPlayer;
-    Player m_lastRaceWinner;
-    RaceLogic m_finishedRace;
-    int m_maxNumCardsToSelectFromHand;
-
-    //TODO: make a Player class and store this data per Player
-    int[,] m_playerCubeCounts;
-    int[] m_playerWildcardCubeCounts;
-    bool[,] m_playerCups;
-    Card[,] m_playerHands;
-
+#if JAKE_ZERO
     GameObject[] m_unclaimedCupGOs;
     Button[] m_unclaimedCupButtons;
     //TODO: make a Player class and store this data per Player
     Text[,] m_playerCubeCountsTexts;
+    int[,] m_playerCubeCounts;
     Text[] m_playerWildcardCubeCountTexts;
+    int[] m_playerWildcardCubeCounts;
     GameObject[] m_playerHandGOs;
     Image[,] m_playerCardOutlines;
     Image[,] m_playerCardBackgrounds;
     Text[,] m_playerCardValues;
+    Card[,] m_playerHands;
     GameObject[,] m_playerCupGOs;
     Image[,] m_playerCupImages;
     Text[,] m_playerCupValues;
+    bool[,] m_playerCups;
     GameObject[] m_playerGenericButtons;
-
-    GameUI m_gameUI;
 
     static public int CubeTypeCount => (int)CupCardCubeColour.Count;
 
@@ -297,7 +250,7 @@ public class GameLogic : MonoBehaviour
         bool validCard = m_races[raceNumber - 1].PlayCard(side, card, m_currentPlayer);
         if (!validCard)
         {
-            m_gameUI.SetStatusText("Wrong Race. Please choose a different Race");
+            StatusText.text = "Wrong Race. Please choose a different Race";
             return;
         }
 
@@ -528,10 +481,6 @@ public class GameLogic : MonoBehaviour
 
     void Initialise()
     {
-        m_gameUI = GetComponent<GameUI>();
-        if (m_gameUI == null)
-            Debug.LogError("Can't find 'GameUI' Component");
-
         var gamelogic = GetComponent<GameLogic>();
         if (gamelogic == null)
             Debug.LogError("Can't find 'GameLogic' Component");
@@ -927,25 +876,25 @@ public class GameLogic : MonoBehaviour
         switch (m_turnState)
         {
             case TurnState.StartingPlayerTurn:
-                m_gameUI.SetStatusText(m_currentPlayer + " Player: Press Continue to Start Turn");
+                StatusText.text = m_currentPlayer + " Player: Press Continue to Start Turn";
                 break;
             case TurnState.PickCardFromHand:
-                m_gameUI.SetStatusText("Choose a Card to Play");
+                StatusText.text = "Choose a Card to Play";
                 break;
             case TurnState.PlayCardOnRace:
-                m_gameUI.SetStatusText("Choose a Race to Play on");
+                StatusText.text = "Choose a Race to Play on";
                 break;
             case TurnState.PickCardsFromHandToDiscard:
-                m_gameUI.SetStatusText("No card can be Played. Select Cards to Discard");
+                StatusText.text = "No card can be Played. Select Cards to Discard";
                 break;
             case TurnState.FinishingRace:
-                m_gameUI.SetStatusText(m_lastRaceWinner + " Player Won the Race");
+                StatusText.text = m_lastRaceWinner + " Player Won the Race";
                 break;
             case TurnState.FinishingGame:
-                m_gameUI.SetStatusText(m_roundWinner + " Player Won the Game");
+                StatusText.text = m_roundWinner + " Player Won the Game";
                 break;
             case TurnState.EndingPlayerTurn:
-                m_gameUI.SetStatusText(m_currentPlayer + " Player: Press Continue to Finish Turn");
+                StatusText.text = m_currentPlayer + " Player: Press Continue to Finish Turn";
                 break;
 
         }
@@ -1277,4 +1226,5 @@ public class GameLogic : MonoBehaviour
                 break;
         }
     }
+#endif
 }
