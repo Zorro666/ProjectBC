@@ -17,4 +17,11 @@
         Right,
         Count = Right + 1
     }
+
+    public enum RaceState
+    {
+        Lowest,
+        Highest,
+        Finished
+    }
 }

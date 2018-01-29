@@ -127,6 +127,7 @@ GameObject:
   m_Component:
   - component: {fileID: 55557192}
   - component: {fileID: 55557193}
+  - component: {fileID: 55557194}
   m_Layer: 0
   m_Name: Race2
   m_TagString: Untagged
@@ -157,6 +158,17 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3f8ee07224f474a85a596306a2d2e9e4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &55557194
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 55557191}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0ad0712ec289f42ce9f5b67ee9faed5c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   NumberOfCubes: 2
@@ -1907,6 +1919,7 @@ GameObject:
   m_Component:
   - component: {fileID: 359810219}
   - component: {fileID: 359810220}
+  - component: {fileID: 359810221}
   m_Layer: 0
   m_Name: Race4
   m_TagString: Untagged
@@ -1937,6 +1950,17 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3f8ee07224f474a85a596306a2d2e9e4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &359810221
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 359810218}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0ad0712ec289f42ce9f5b67ee9faed5c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   NumberOfCubes: 4
@@ -4960,6 +4984,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1256985515}
   - component: {fileID: 1256985516}
+  - component: {fileID: 1256985517}
   m_Layer: 0
   m_Name: Race3
   m_TagString: Untagged
@@ -4990,6 +5015,17 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3f8ee07224f474a85a596306a2d2e9e4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &1256985517
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1256985514}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0ad0712ec289f42ce9f5b67ee9faed5c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   NumberOfCubes: 3
@@ -5585,6 +5621,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1420424125}
   - component: {fileID: 1420424126}
+  - component: {fileID: 1420424127}
   m_Layer: 0
   m_Name: Race1
   m_TagString: Untagged
@@ -5615,6 +5652,17 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3f8ee07224f474a85a596306a2d2e9e4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &1420424127
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1420424124}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0ad0712ec289f42ce9f5b67ee9faed5c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   NumberOfCubes: 1

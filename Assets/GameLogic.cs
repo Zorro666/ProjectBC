@@ -53,7 +53,7 @@ public class GameLogic : MonoBehaviour
     Player m_roundWinner;
     Player m_currentPlayer;
     Player m_lastRaceWinner;
-    Race m_finishedRace;
+    RaceLogic m_finishedRace;
     int m_maxNumCardsToSelectFromHand;
 
     //TODO: make a Player class and store this data per Player
@@ -128,7 +128,7 @@ public class GameLogic : MonoBehaviour
         ++m_playerCubeCounts[(int)player, (int)cubeType];
     }
 
-    public void FinishRace(Player winner, Race race)
+    public void FinishRace(Player winner, RaceLogic race)
     {
         UpdateCubeCounts();
         m_turnState = TurnState.FinishingRace;
