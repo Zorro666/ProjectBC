@@ -94,20 +94,6 @@ public class GameLogic : MonoBehaviour
         get { return 3; }
     }
 
-    static public GameLogic GetInstance()
-    {
-        var logic = GameObject.Find("/Logic");
-        if (logic == null)
-        {
-            Debug.LogError("Can't find '/Logic' GameObject");
-            return null;
-        }
-        var gamelogic = logic.GetComponent<GameLogic>();
-        if (gamelogic == null)
-            Debug.LogError("Can't find 'GameLogic' Component");
-        return gamelogic;
-    }
-
     public int CubesRemainingCount
     {
         get { return m_cubesRemainingCount; }
@@ -539,6 +525,10 @@ public class GameLogic : MonoBehaviour
 
     void Initialise()
     {
+        var gamelogic = GetComponent<GameLogic>();
+        if (gamelogic == null)
+            Debug.LogError("Can't find 'GameLogic' Component");
+
         for (int cubeType = 0; cubeType < GameLogic.CubeTypeCount; ++cubeType)
             m_cubeCurrentCounts[cubeType] = m_cubeStartingCounts[cubeType];
 
@@ -565,7 +555,7 @@ public class GameLogic : MonoBehaviour
                 Debug.LogError("Can't find Race[" + i + "] Component");
         }
         foreach (var race in m_races)
-            race.Initialise();
+            race.Initialise(gamelogic);
 
         var gameBoardUIRootName = "/GameBoard/UI/";
         for (int player = 0; player < GameLogic.PlayerCount; ++player)

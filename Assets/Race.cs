@@ -45,12 +45,13 @@ public class Race : MonoBehaviour
         m_raceLogic.StartRace();
     }
 
-	public void Initialise() 
+	public void Initialise(GameLogic gamelogic) 
     {
         m_raceUI = GetComponent<RaceUI>();
         if (m_raceUI == null)
             Debug.LogError("m_raceUI is NULL");
-        m_raceLogic.Initialise(m_raceUI);
+        m_raceUI.Initialise(gamelogic);
+        m_raceLogic.Initialise(m_raceUI, gamelogic);
     }
 
     public void NewGame() 

@@ -151,16 +151,15 @@ public class RaceLogic
         return Player.Unknown;
     }
 
-	public void Initialise(RaceUI raceUI) 
+    public void Initialise(RaceUI raceUI, GameLogic gamelogic) 
     {
-        m_gamelogic = GameLogic.GetInstance();
+        m_gamelogic = gamelogic;
         m_raceUI = raceUI;
         NumberOfCubes = raceUI.NumberOfCubes;
         m_state = RaceState.Finished;
         m_cards = new Card[GameLogic.PlayerCount, NumberOfCubes];
         m_cardsPlayed = new int[GameLogic.PlayerCount];
         m_cardsRemaining = new int[GameLogic.PlayerCount, GameLogic.CubeTypeCount];
-        m_raceUI.Initialise();
     }
 
     public void NewGame() 

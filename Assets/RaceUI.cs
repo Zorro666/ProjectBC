@@ -107,9 +107,9 @@ public class RaceUI : MonoBehaviour
         m_cubeImages[index].color = m_gamelogic.GetCardCubeColour(colour);
     }
 
-	public void Initialise() 
+	public void Initialise(GameLogic gamelogic) 
     {
-        m_gamelogic = GameLogic.GetInstance();
+        m_gamelogic = gamelogic;
     }
 
     public void SetPlayedCardToCard(int playerIndex, int cardIndex, Card card)
