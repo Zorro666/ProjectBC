@@ -52,10 +52,12 @@ public class Race : MonoBehaviour
         if (m_raceUI == null)
             Debug.LogError("m_raceUI is NULL");
         m_raceUI.Initialise(gameLogic);
-        m_raceLogic.Initialise(m_raceUI.NumberOfCubes, m_raceUI, 
-                               m_gameLogic.GetCubesRemainingCount, 
+        m_raceLogic.Initialise(m_raceUI.NumberOfCubes, m_raceUI,
+                               m_gameLogic.GetCubesRemainingCount,
                                m_gameLogic.NextCube,
-                               gameLogic);
+                               m_gameLogic.AddCubeToPlayer,
+                               m_gameLogic.DiscardCard,
+                               m_gameLogic.FinishRace);
     }
 
     public void NewGame() 

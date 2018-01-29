@@ -5,10 +5,15 @@ public class RaceLogic
 {
     public delegate int CubesRemainingInBagDelegate();
     public delegate CupCardCubeColour NextCubeDelegate();
+    public delegate void AddCubeToPlayerDelegate(Player winner, CupCardCubeColour cube);
+    public delegate void DiscardCardDelegate(Card card);
+    public delegate void FinishRaceDelegate(Player winner, RaceLogic race);
 
-    GameLogic m_gameLogic;
-    NextCubeDelegate m_nextCube;
-    CubesRemainingInBagDelegate m_cubesRemainingInBag;
+    NextCubeDelegate m_NextCube;
+    CubesRemainingInBagDelegate m_CubesRemainingInBag;
+    AddCubeToPlayerDelegate m_AddCubeToPlayer;
+    DiscardCardDelegate m_DiscardCard;
+    FinishRaceDelegate m_FinishRace;
 
     public RaceState State { get; private set; }
     Card[,] m_cards;
@@ -97,7 +102,7 @@ public class RaceLogic
                 m_cardsRemaining[playerIndex, colour] = 0;
         }
 
-        if (m_cubesRemainingInBag() < NumberOfCubes)
+        if (m_CubesRemainingInBag() < NumberOfCubes)
             State = RaceState.Finished;
 
         if (State == RaceState.Finished)
@@ -111,7 +116,7 @@ public class RaceLogic
 
         for (var i = 0; i < NumberOfCubes; i++)
         {
-            var cubeColour = m_nextCube();
+            var cubeColour = m_NextCube();
             var colour = (int)cubeColour;
             if (m_raceUI)
             {
@@ -175,14 +180,18 @@ public class RaceLogic
     }
 
     public void Initialise(int numberOfCubes, RaceUI raceUI, 
-                           CubesRemainingInBagDelegate cubesRemainingInBag,
-                           NextCubeDelegate nextCube,
-                           GameLogic gamelogic) 
+                           CubesRemainingInBagDelegate CubesRemainingInBag,
+                           NextCubeDelegate NextCube,
+                           AddCubeToPlayerDelegate AddCubeToPlayer,
+                           DiscardCardDelegate DiscardCard,
+                           FinishRaceDelegate FinishRace)
     {
-        m_cubesRemainingInBag = cubesRemainingInBag;
-        m_nextCube = nextCube;
+        m_CubesRemainingInBag = CubesRemainingInBag;
+        m_NextCube = NextCube;
+        m_AddCubeToPlayer = AddCubeToPlayer;
+        m_DiscardCard = DiscardCard;
+        m_FinishRace = FinishRace;
 
-        m_gameLogic = gamelogic;
         m_raceUI = raceUI;
         NumberOfCubes = numberOfCubes;
         State = RaceState.Finished;
@@ -209,13 +218,13 @@ public class RaceLogic
         {
             var playerIndex = (int)m_winner;
             Card card = m_cards[playerIndex, cardIndex];
-            m_gameLogic.AddCubeToPlayer(m_winner, card.Colour);
+            m_AddCubeToPlayer(m_winner, card.Colour);
         }
 
         for (var playerIndex = 0; playerIndex < GameLogic.PlayerCount; ++playerIndex)
         {
             for (var cardIndex = 0; cardIndex < NumberOfCubes; ++cardIndex)
-                m_gameLogic.DiscardCard(m_cards[playerIndex, cardIndex]);
+                m_DiscardCard(m_cards[playerIndex, cardIndex]);
         }
 
         if (State == RaceState.Lowest)
@@ -223,7 +232,7 @@ public class RaceLogic
         else if (State == RaceState.Highest)
             State = RaceState.Lowest;
 
-        m_gameLogic.FinishRace(m_winner, this);
+        m_FinishRace(m_winner, this);
     }
 
     public bool PlayCard(Player player, Card card, Player currentPlayer)
