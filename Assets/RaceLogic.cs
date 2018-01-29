@@ -3,7 +3,7 @@ using BC;
 
 public class RaceLogic
 {
-    GameLogic m_gamelogic;
+    GameLogic m_gameLogic;
 
     RaceState m_state;
     Card[,] m_cards;
@@ -92,7 +92,7 @@ public class RaceLogic
                 m_cardsRemaining[playerIndex, colour] = 0;
         }
 
-        if (m_gamelogic.CubesRemainingCount < NumberOfCubes)
+        if (m_gameLogic.CubesRemainingCount < NumberOfCubes)
             m_state = RaceState.Finished;
 
         if (m_state == RaceState.Finished)
@@ -106,7 +106,7 @@ public class RaceLogic
 
         for (var i = 0; i < NumberOfCubes; i++)
         {
-            var cubeColour = m_gamelogic.NextCube();
+            var cubeColour = m_gameLogic.NextCube();
             var colour = (int)cubeColour;
             if (m_raceUI)
             {
@@ -170,7 +170,7 @@ public class RaceLogic
 
     public void Initialise(RaceUI raceUI, GameLogic gamelogic) 
     {
-        m_gamelogic = gamelogic;
+        m_gameLogic = gamelogic;
         m_raceUI = raceUI;
         NumberOfCubes = raceUI.NumberOfCubes;
         m_state = RaceState.Finished;
@@ -196,13 +196,13 @@ public class RaceLogic
         {
             var playerIndex = (int)m_winner;
             Card card = m_cards[playerIndex, cardIndex];
-            m_gamelogic.AddCubeToPlayer(m_winner, card.Colour);
+            m_gameLogic.AddCubeToPlayer(m_winner, card.Colour);
         }
 
         for (var playerIndex = 0; playerIndex < GameLogic.PlayerCount; ++playerIndex)
         {
             for (var cardIndex = 0; cardIndex < NumberOfCubes; ++cardIndex)
-                m_gamelogic.DiscardCard(m_cards[playerIndex, cardIndex]);
+                m_gameLogic.DiscardCard(m_cards[playerIndex, cardIndex]);
         }
 
         if (m_state == RaceState.Lowest)
@@ -210,7 +210,7 @@ public class RaceLogic
         else if (m_state == RaceState.Highest)
             m_state = RaceState.Lowest;
 
-        m_gamelogic.FinishRace(m_winner, this);
+        m_gameLogic.FinishRace(m_winner, this);
     }
 
     public bool PlayCard(Player player, Card card, Player currentPlayer)

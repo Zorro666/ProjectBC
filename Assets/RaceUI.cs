@@ -11,7 +11,7 @@ public class RaceUI : MonoBehaviour
     Text[,] m_playedCardsValue;
     Image m_background;
     Image[] m_cubeImages;
-    GameLogic m_gamelogic;
+    GameLogic m_gameLogic;
 
     void Awake()
     {
@@ -81,9 +81,9 @@ public class RaceUI : MonoBehaviour
 
     public void SetFinished()
     {
-        m_background.color = m_gamelogic.RaceFinishedColour;
+        m_background.color = m_gameLogic.RaceFinishedColour;
         foreach (Image cubeImage in m_cubeImages)
-            cubeImage.color = m_gamelogic.RaceFinishedColour;
+            cubeImage.color = m_gameLogic.RaceFinishedColour;
     }
 
     public void StartRace(RaceState raceState)
@@ -97,26 +97,26 @@ public class RaceUI : MonoBehaviour
         }
 
         if (raceState == RaceState.Lowest)
-            m_background.color = m_gamelogic.RaceLowestColour;
+            m_background.color = m_gameLogic.RaceLowestColour;
         else if (raceState == RaceState.Highest)
-            m_background.color = m_gamelogic.RaceHighestColour;
+            m_background.color = m_gameLogic.RaceHighestColour;
     }
 
     public void SetCube(int index, CupCardCubeColour colour)
     {
-        m_cubeImages[index].color = m_gamelogic.GetCardCubeColour(colour);
+        m_cubeImages[index].color = m_gameLogic.GetCardCubeColour(colour);
     }
 
 	public void Initialise(GameLogic gamelogic) 
     {
-        m_gamelogic = gamelogic;
+        m_gameLogic = gamelogic;
     }
 
     public void SetPlayedCardToCard(int playerIndex, int cardIndex, Card card)
     {
         string text = card.Value.ToString();
         m_playedCardsValue[playerIndex, cardIndex].text = text;
-        var colour = m_gamelogic.GetCardCubeColour(card.Colour);
+        var colour = m_gameLogic.GetCardCubeColour(card.Colour);
         m_playedCardsBackground[playerIndex, cardIndex].color = colour;
         var textColour = (card.Colour == CupCardCubeColour.Yellow) ? Color.black : Color.white;
         m_playedCardsValue[playerIndex, cardIndex].color = textColour;
