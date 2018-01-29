@@ -59,8 +59,6 @@ public class GameLogic : MonoBehaviour
     bool[,] m_playerCups;
     Card[,] m_playerHands;
 
-    GameObject[] m_unclaimedCupGOs;
-    Button[] m_unclaimedCupButtons;
     //TODO: make a Player class and store this data per Player
     Text[,] m_playerCubeCountsTexts;
     Text[] m_playerWildcardCubeCountTexts;
@@ -642,17 +640,7 @@ public class GameLogic : MonoBehaviour
             if (m_playerGenericButtons[player] == null)
                 Debug.LogError("Can't find GenericButton for Player " + (Player)player + " " + playerGenericButtonName);
         }
-        var unclaimedCupRootName = gameBoardUIRootName + "CupsBackground/";
-        for (var cupIndex = 0; cupIndex < GameLogic.CubeTypeCount; ++cupIndex)
-        {
-            var unclaimedCupName = unclaimedCupRootName + (CupCardCubeColour)cupIndex;
-            m_unclaimedCupGOs[cupIndex] = GameObject.Find(unclaimedCupName);
-            if (m_unclaimedCupGOs[cupIndex] == null)
-                Debug.LogError("Can't find cup " + (CupCardCubeColour)cupIndex + " " + unclaimedCupName);
-            m_unclaimedCupButtons[cupIndex] = m_unclaimedCupGOs[cupIndex].GetComponent<Button>();
-            if (m_unclaimedCupButtons[cupIndex] == null)
-                Debug.LogError("Can't find cup " + (CupCardCubeColour)cupIndex + " Button Component");
-        }
+        m_gameUI.Initialise();
     }
 
     void ResetUnclaimedCups()
@@ -660,10 +648,11 @@ public class GameLogic : MonoBehaviour
         for (var cupIndex = 0; cupIndex < GameLogic.CubeTypeCount; ++cupIndex)
         {
             if (!IsCupWon((CupCardCubeColour)cupIndex))
-                m_unclaimedCupGOs[cupIndex].SetActive(true);
+            {
+                m_gameUI.SetCupStatus(cupIndex, true);
+            }
+            m_gameUI.SetCupInteractible(cupIndex, false);
         }
-        foreach (var cupButton in m_unclaimedCupButtons)
-            cupButton.interactable = false;
     }
 
     void NewGame()
@@ -720,7 +709,7 @@ public class GameLogic : MonoBehaviour
         m_playerCups[playerIndex, cupIndex] = true;
         m_cupOwner[cupIndex] = player;
 
-        m_unclaimedCupGOs[cupIndex].SetActive(false);
+        m_gameUI.SetCupStatus(cupIndex, false);
 
         var cupDisplayIndex = NumCupsPlayerHasWon(player) - 1;
         if (cupDisplayIndex < GameLogic.MaxCupsPerPlayer)
@@ -770,7 +759,7 @@ public class GameLogic : MonoBehaviour
                 var cubeCountToWin = m_cubeWinningCounts[cubeIndex];
                 if (cubeValue + wildcardCount >= cubeCountToWin)
                 {
-                    m_unclaimedCupButtons[cubeIndex].interactable = true;
+                    m_gameUI.SetCupInteractible(cubeIndex, true);
                 }
             }
         }
@@ -886,7 +875,8 @@ public class GameLogic : MonoBehaviour
         {
             if (!IsCupWon((CupCardCubeColour)cubeIndex))
             {
-                if (m_unclaimedCupButtons[cubeIndex].interactable)
+                //TODO: this should be tracked in logic not UI
+                if (m_gameUI.IsCupInteractible(cubeIndex))
                     return true;
             }
         }
@@ -1128,8 +1118,6 @@ public class GameLogic : MonoBehaviour
         m_playerGenericButtons = new GameObject[GameLogic.PlayerCount];
 
         m_cupOwner = new Player[GameLogic.CubeTypeCount];
-        m_unclaimedCupGOs = new GameObject[GameLogic.CubeTypeCount];
-        m_unclaimedCupButtons = new Button[GameLogic.CubeTypeCount];
     }
 
     void Start()

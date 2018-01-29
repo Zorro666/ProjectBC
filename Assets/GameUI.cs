@@ -1,17 +1,19 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
+using BC;
 
 public class GameUI : MonoBehaviour
 {
     public Text StatusText;
+
+    GameObject[] m_unclaimedCupGOs;
+    Button[] m_unclaimedCupButtons;
 
     public void SetStatusText(string text)
     {
         StatusText.text = text;
     }
 #if JAKE_ZERO
-    GameObject[] m_unclaimedCupGOs;
-    Button[] m_unclaimedCupButtons;
     //TODO: make a Player class and store this data per Player
     Text[,] m_playerCubeCountsTexts;
     int[,] m_playerCubeCounts;
@@ -478,119 +480,17 @@ public class GameUI : MonoBehaviour
         }
         return m_cubes[m_cubesRemainingCount];
     }
+#endif
 
-    void Initialise()
+    void Awake()
     {
-        var gamelogic = GetComponent<GameLogic>();
-        if (gamelogic == null)
-            Debug.LogError("Can't find 'GameLogic' Component");
+        m_unclaimedCupGOs = new GameObject[GameLogic.CubeTypeCount];
+        m_unclaimedCupButtons = new Button[GameLogic.CubeTypeCount];
+    }
 
-        for (var cubeType = 0; cubeType < GameLogic.CubeTypeCount; ++cubeType)
-            m_cubeCurrentCounts[cubeType] = m_cubeStartingCounts[cubeType];
-
-        CreateFullDeck();
-        var cubeIndex = 0;
-        for (var cubeType = 0; cubeType < GameLogic.CubeTypeCount; ++cubeType)
-        {
-            var count = m_cubeCurrentCounts[cubeType];
-            for (var i = 0; i < count; ++i)
-                m_cubes[cubeIndex++] = (CupCardCubeColour)cubeType;
-        }
-        if (CubesTotalCount != cubeIndex)
-            Debug.LogError("cubes count not matching " + CubesTotalCount + " != " + cubeIndex);
-
-        for (var i = 0; i < RacesCount; ++i)
-        {
-            var raceIndex = i + 1;
-            var raceName = "/Race" + raceIndex;
-            var raceGO = GameObject.Find(raceName);
-            if (raceGO == null)
-                Debug.LogError("Can't find Race[" + i + "] GameObject '" + raceName + "'");
-            m_races[i] = raceGO.GetComponent<Race>();
-            if (m_races[i] == null)
-                Debug.LogError("Can't find Race[" + i + "] Component");
-        }
-        foreach (var race in m_races)
-            race.Initialise(gamelogic);
-
+    public void Initialise()
+    {
         var gameBoardUIRootName = "/GameBoard/UI/";
-        for (var player = 0; player < GameLogic.PlayerCount; ++player)
-        {
-            var playerUIRootName = gameBoardUIRootName + (Player)player + "Player/";
-            var playerCubesBackgroundRootName = playerUIRootName + "CubesBackground/";
-            var playerCupsRootName = playerUIRootName + "CupsBackground/";
-            for (var cubeType = 0; cubeType < GameLogic.CubeTypeCount; ++cubeType)
-            {
-                var cubeCountText = playerCubesBackgroundRootName + (CupCardCubeColour)cubeType;
-                var cubeCountGO = GameObject.Find(cubeCountText);
-                if (cubeCountGO == null)
-                    Debug.LogError("Can't find " + (CupCardCubeColour)cubeType + " cube count GameObject " + cubeCountText);
-                m_playerCubeCountsTexts[player, cubeType] = cubeCountGO.GetComponent<Text>();
-                if (m_playerCubeCountsTexts[player, cubeType] == null)
-                    Debug.LogError("Can't find " + (CupCardCubeColour)cubeType + " cube count UI Text Component");
-
-                m_playerCups[player, cubeType] = false;
-            }
-            var wildcardCubeCountText = playerCubesBackgroundRootName + "White";
-            var wildcardCubeCountGO = GameObject.Find(wildcardCubeCountText);
-            if (wildcardCubeCountGO == null)
-                Debug.LogError("Can't find wildcard cube count GameObject " + wildcardCubeCountText);
-            m_playerWildcardCubeCountTexts[player] = wildcardCubeCountGO.GetComponent<Text>();
-            if (m_playerWildcardCubeCountTexts[player] == null)
-                Debug.LogError("Can't find wildcard cube count UI Text Component");
-
-            var playerHandRootName = playerUIRootName + "Hand/";
-            m_playerHandGOs[player] = GameObject.Find(playerHandRootName);
-            if (m_playerHandGOs[player] == null)
-                Debug.LogError("Can't find Player Hand UI GameObject " + (Player)player + " " + playerHandRootName);
-            for (var card = 0; card < GameLogic.HandSize; ++card)
-            {
-                var cardIndex = card + 1;
-                var playerCardRootName = playerHandRootName + "Card" + cardIndex.ToString() + "/";
-                var playerCardOutlineGO = GameObject.Find(playerCardRootName);
-                if (playerCardOutlineGO == null)
-                    Debug.LogError("Can't find PlayerCardOutlineGO " + playerCardRootName);
-                m_playerCardOutlines[player, card] = playerCardOutlineGO.GetComponent<Image>();
-                if (m_playerCardOutlines[player, card] == null)
-                    Debug.LogError("Can't find Player " + (Player)player + " Card[" + cardIndex + " Outline Image " + playerCardRootName);
-
-                var playerCardBackgroundName = playerCardRootName + "Background";
-                var playerCardBackgroundGO = GameObject.Find(playerCardBackgroundName);
-                if (playerCardBackgroundGO == null)
-                    Debug.LogError("Can't find PlayerCardBackgroundGO " + playerCardBackgroundName);
-                m_playerCardBackgrounds[player, card] = playerCardBackgroundGO.GetComponent<Image>();
-
-                var playerCardValueName = playerCardBackgroundName + "/Value";
-                var playerCardValueGO = GameObject.Find(playerCardValueName);
-                if (playerCardValueGO == null)
-                    Debug.LogError("Can't find PlayerCardValueGO " + playerCardValueName);
-                m_playerCardValues[player, card] = playerCardValueGO.GetComponent<Text>();
-                if (m_playerCardValues[player, card] == null)
-                    Debug.LogError("Can't find Player " + (Player)player + " Card[" + cardIndex + " Value Text " + playerCardValueName);
-            }
-            for (var cupIndex = 0; cupIndex < GameLogic.MaxCupsPerPlayer; ++cupIndex)
-            {
-                var playerCupIndex = (cupIndex + 1);
-                var cupImageName = playerCupsRootName + "Cup" + playerCupIndex;
-                m_playerCupGOs[player,cupIndex] = GameObject.Find(cupImageName);
-                if (m_playerCupGOs[player, cupIndex] == null)
-                    Debug.LogError("Can't find Cup " + playerCupIndex + " Image GameObject " + cupImageName);
-                m_playerCupImages[player, cupIndex] = m_playerCupGOs[player,cupIndex].GetComponent<Image>();
-                if (m_playerCupImages[player, cupIndex] == null)
-                    Debug.LogError("Can't find Cup " + playerCupIndex + " Image Component");
-                var cupValueName = cupImageName + "/Value";
-                var cupValueGO = GameObject.Find(cupValueName);
-                if (cupValueGO == null)
-                    Debug.LogError("Can't find Cup " + playerCupIndex + " Value GameObject " + cupValueName);
-                m_playerCupValues[player, cupIndex] = cupValueGO.GetComponent<Text>();
-                if (m_playerCupValues[player, cupIndex] == null)
-                    Debug.LogError("Can't find Cup " + playerCupIndex + " Value Component");
-            }
-            var playerGenericButtonName = playerUIRootName + "GenericButton";
-            m_playerGenericButtons[player] = GameObject.Find(playerGenericButtonName);
-            if (m_playerGenericButtons[player] == null)
-                Debug.LogError("Can't find GenericButton for Player " + (Player)player + " " + playerGenericButtonName);
-        }
         var unclaimedCupRootName = gameBoardUIRootName + "CupsBackground/";
         for (var cupIndex = 0; cupIndex < GameLogic.CubeTypeCount; ++cupIndex)
         {
@@ -604,17 +504,22 @@ public class GameUI : MonoBehaviour
         }
     }
 
-    void ResetUnclaimedCups()
+    public void SetCupStatus(int cupIndex, bool available)
     {
-        for (var cupIndex = 0; cupIndex < GameLogic.CubeTypeCount; ++cupIndex)
-        {
-            if (!IsCupWon((CupCardCubeColour)cupIndex))
-                m_unclaimedCupGOs[cupIndex].SetActive(true);
-        }
-        foreach (var cupButton in m_unclaimedCupButtons)
-            cupButton.interactable = false;
+        m_unclaimedCupGOs[cupIndex].SetActive(available);
     }
 
+    public void SetCupInteractible(int cupIndex, bool interactible)
+    {
+        m_unclaimedCupButtons[cupIndex].interactable = interactible;
+    }
+
+    //TODO: this should be in logic not UI
+    public bool IsCupInteractible(int cupIndex)
+    {
+        return m_unclaimedCupButtons[cupIndex].interactable;
+    }
+    #if JAKE_ZERO
     void NewGame()
     {
         ResetUnclaimedCups();
@@ -1023,8 +928,6 @@ public class GameUI : MonoBehaviour
         }
     }
 
-    void Awake()
-    {
         m_random = new System.Random();
         m_cubeCurrentCounts = new int[GameLogic.CubeTypeCount];
         m_cubeStartingCounts = new int[GameLogic.CubeTypeCount];
