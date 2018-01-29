@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using UnityEngine.UI;
 using BC;
 
 public class RaceLogic
@@ -37,7 +36,10 @@ public class RaceLogic
             var cardIndex = m_cardsPlayed[playerIndex];
             if (cardIndex < NumberOfCubes)
             {
-                m_raceUI.SetPlayCardButtons(playerIndex, cardIndex, false);
+                if (m_raceUI)
+                {
+                    m_raceUI.SetPlayCardButtons(playerIndex, cardIndex, false);
+                }
             }
         }
     }
@@ -62,8 +64,11 @@ public class RaceLogic
             }
             if (setValue)
             {
-                m_raceUI.SetPlayedCardToCard(playerIndex, cardIndex, card);
-                m_raceUI.SetPlayCardButtons(playerIndex, cardIndex, active);
+                if (m_raceUI)
+                {
+                    m_raceUI.SetPlayedCardToCard(playerIndex, cardIndex, card);
+                    m_raceUI.SetPlayCardButtons(playerIndex, cardIndex, active);
+                }
             }
         }
     }
@@ -78,7 +83,10 @@ public class RaceLogic
             for (var cardIndex = 0; cardIndex < NumberOfCubes; ++cardIndex)
             {
                 m_cards[playerIndex, cardIndex] = null;
-                m_raceUI.SetPlayCardButtons(playerIndex, cardIndex, false);
+                if (m_raceUI)
+                {
+                    m_raceUI.SetPlayCardButtons(playerIndex, cardIndex, false);
+                }
             }
             for (var colour = 0; colour < GameLogic.CubeTypeCount; ++colour)
                 m_cardsRemaining[playerIndex, colour] = 0;
@@ -89,7 +97,10 @@ public class RaceLogic
 
         if (m_state == RaceState.Finished)
         {
-            m_raceUI.SetFinished();
+            if (m_raceUI)
+            {
+                m_raceUI.SetFinished();
+            }
             return;
         }
 
@@ -97,11 +108,17 @@ public class RaceLogic
         {
             var cubeColour = m_gamelogic.NextCube();
             var colour = (int)cubeColour;
-            m_raceUI.SetCube(i, cubeColour);
+            if (m_raceUI)
+            {
+                m_raceUI.SetCube(i, cubeColour);
+            }
             for (var playerIndex = 0; playerIndex < GameLogic.PlayerCount; ++playerIndex)
                 ++m_cardsRemaining[playerIndex, colour];
         }
-        m_raceUI.StartRace(m_state);
+        if (m_raceUI)
+        {
+            m_raceUI.StartRace(m_state);
+        }
         m_winner = Player.Unknown;
     }
 
@@ -204,14 +221,14 @@ public class RaceLogic
             Debug.Log(Name + " race is Finished");
             return false;
         }
-        int playerIndex = (int)player;
-        int cardIndex = m_cardsPlayed[playerIndex];
+        var playerIndex = (int)player;
+        var cardIndex = m_cardsPlayed[playerIndex];
         if (cardIndex == NumberOfCubes)
         {
             Debug.Log(player + " player is full");
             return false;
         }
-        int cardColour = (int)card.Colour;
+        var cardColour = (int)card.Colour;
         if (m_cardsRemaining[playerIndex, cardColour] == 0)
         {
             Debug.Log(player + " player " + card.Colour + " can't be played");
@@ -219,9 +236,12 @@ public class RaceLogic
         }
         --m_cardsRemaining[playerIndex, cardColour];
         ++m_cardsPlayed[playerIndex];
-        m_raceUI.SetPlayedCardToCard(playerIndex, cardIndex, card);
-        m_raceUI.SetPlayCardButtons(playerIndex, cardIndex, true); 
-        m_raceUI.SetPlayCardButtonInteractable(playerIndex, cardIndex, false); 
+        if (m_raceUI)
+        {
+            m_raceUI.SetPlayedCardToCard(playerIndex, cardIndex, card);
+            m_raceUI.SetPlayCardButtons(playerIndex, cardIndex, true);
+            m_raceUI.SetPlayCardButtonInteractable(playerIndex, cardIndex, false);
+        }
         m_cards[playerIndex, cardIndex] = card;
         //Debug.Log(m_cards[playerIndex, cardIndex].Value);
 

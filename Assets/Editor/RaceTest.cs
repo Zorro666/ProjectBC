@@ -1,11 +1,9 @@
-﻿using UnityEngine;
-using UnityEditor;
-using UnityEngine.TestTools;
+﻿using UnityEngine.TestTools;
 using NUnit.Framework;
 using System.Collections;
 
-public class RaceTest {
-
+public class RaceTest 
+{
 	[Test]
 	public void RaceTestSimplePasses() 
     {

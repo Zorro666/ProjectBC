@@ -88,9 +88,9 @@ public class RaceUI : MonoBehaviour
 
     public void StartRace(RaceState raceState)
     {
-        for (int playerIndex = 0; playerIndex < GameLogic.PlayerCount; ++playerIndex)
+        for (var playerIndex = 0; playerIndex < GameLogic.PlayerCount; ++playerIndex)
         {
-            for (int cardIndex = 0; cardIndex < NumberOfCubes; ++cardIndex)
+            for (var cardIndex = 0; cardIndex < NumberOfCubes; ++cardIndex)
             {
                 m_playedCardsGO[playerIndex, cardIndex].SetActive(false);
             }
