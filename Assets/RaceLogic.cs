@@ -12,7 +12,7 @@ public class RaceLogic
     Player m_winner;
     RaceUI m_raceUI;
 
-    int NumberOfCubes { get; set; }
+    public int NumberOfCubes { get; private set; }
     public Player Winner
     {
         get { return m_winner; }
@@ -123,6 +123,7 @@ public class RaceLogic
     }
 
     string Name { get { return "Race" + NumberOfCubes.ToString(); } }
+
     Player ComputeWinner(Player currentPlayer)
     {
         Player maxScorePlayer = Player.Unknown;
@@ -168,15 +169,16 @@ public class RaceLogic
         return Player.Unknown;
     }
 
-    public void Initialise(RaceUI raceUI, GameLogic gamelogic) 
+    public void Initialise(int numberOfCubes, RaceUI raceUI, GameLogic gamelogic) 
     {
         m_gameLogic = gamelogic;
         m_raceUI = raceUI;
-        NumberOfCubes = raceUI.NumberOfCubes;
+        NumberOfCubes = numberOfCubes;
         m_state = RaceState.Finished;
         m_cards = new Card[GameLogic.PlayerCount, NumberOfCubes];
         m_cardsPlayed = new int[GameLogic.PlayerCount];
         m_cardsRemaining = new int[GameLogic.PlayerCount, GameLogic.CubeTypeCount];
+        m_winner = Player.Unknown;
     }
 
     public void NewGame() 

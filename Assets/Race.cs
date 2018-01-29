@@ -50,7 +50,7 @@ public class Race : MonoBehaviour
         if (m_raceUI == null)
             Debug.LogError("m_raceUI is NULL");
         m_raceUI.Initialise(gamelogic);
-        m_raceLogic.Initialise(m_raceUI, gamelogic);
+        m_raceLogic.Initialise(m_raceUI.NumberOfCubes, m_raceUI, gamelogic);
     }
 
     public void NewGame() 
