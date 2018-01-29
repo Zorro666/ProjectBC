@@ -8,17 +8,42 @@ public class GameUI : MonoBehaviour
 
     GameObject[] m_unclaimedCupGOs;
     Button[] m_unclaimedCupButtons;
+    Text[,] m_playerCubeCountsTexts;
+    Text[] m_playerWildcardCubeCountTexts;
 
     public void SetStatusText(string text)
     {
         StatusText.text = text;
     }
+
+    public void SetCupStatus(int cupIndex, bool available)
+    {
+        m_unclaimedCupGOs[cupIndex].SetActive(available);
+    }
+
+    public void SetCupInteractible(int cupIndex, bool interactible)
+    {
+        m_unclaimedCupButtons[cupIndex].interactable = interactible;
+    }
+
+    //TODO: this should be in logic not UI
+    public bool IsCupInteractible(int cupIndex)
+    {
+        return m_unclaimedCupButtons[cupIndex].interactable;
+    }
+
+    public void SetPlayerCubeCountColour(int playerIndex, int cubeIndex, Color colour)
+    {
+        m_playerCubeCountsTexts[playerIndex, cubeIndex].color = colour;
+    }
+
+    public void SetPlayerCubeCountValue(int playerIndex, int cubeIndex, int cubeValue)
+    {
+        m_playerCubeCountsTexts[playerIndex, cubeIndex].text = cubeValue.ToString();
+    }
+
 #if JAKE_ZERO
     //TODO: make a Player class and store this data per Player
-    Text[,] m_playerCubeCountsTexts;
-    int[,] m_playerCubeCounts;
-    Text[] m_playerWildcardCubeCountTexts;
-    int[] m_playerWildcardCubeCounts;
     GameObject[] m_playerHandGOs;
     Image[,] m_playerCardOutlines;
     Image[,] m_playerCardBackgrounds;
@@ -27,7 +52,6 @@ public class GameUI : MonoBehaviour
     GameObject[,] m_playerCupGOs;
     Image[,] m_playerCupImages;
     Text[,] m_playerCupValues;
-    bool[,] m_playerCups;
     GameObject[] m_playerGenericButtons;
 
     static public int CubeTypeCount => (int)CupCardCubeColour.Count;
@@ -486,6 +510,8 @@ public class GameUI : MonoBehaviour
     {
         m_unclaimedCupGOs = new GameObject[GameLogic.CubeTypeCount];
         m_unclaimedCupButtons = new Button[GameLogic.CubeTypeCount];
+        m_playerCubeCountsTexts = new Text[GameLogic.PlayerCount, GameLogic.CubeTypeCount];
+        m_playerWildcardCubeCountTexts = new Text[GameLogic.PlayerCount];
     }
 
     public void Initialise()
@@ -502,23 +528,24 @@ public class GameUI : MonoBehaviour
             if (m_unclaimedCupButtons[cupIndex] == null)
                 Debug.LogError("Can't find cup " + (CupCardCubeColour)cupIndex + " Button Component");
         }
+        for (var player = 0; player < GameLogic.PlayerCount; ++player)
+        {
+            var playerUIRootName = gameBoardUIRootName + (Player)player + "Player/";
+            var playerCubesBackgroundRootName = playerUIRootName + "CubesBackground/";
+            var playerCupsRootName = playerUIRootName + "CupsBackground/";
+            for (var cubeType = 0; cubeType < GameLogic.CubeTypeCount; ++cubeType)
+            {
+                var cubeCountText = playerCubesBackgroundRootName + (CupCardCubeColour)cubeType;
+                var cubeCountGO = GameObject.Find(cubeCountText);
+                if (cubeCountGO == null)
+                    Debug.LogError("Can't find " + (CupCardCubeColour)cubeType + " cube count GameObject " + cubeCountText);
+                m_playerCubeCountsTexts[player, cubeType] = cubeCountGO.GetComponent<Text>();
+                if (m_playerCubeCountsTexts[player, cubeType] == null)
+                    Debug.LogError("Can't find " + (CupCardCubeColour)cubeType + " cube count UI Text Component");
+            }
+        }
     }
 
-    public void SetCupStatus(int cupIndex, bool available)
-    {
-        m_unclaimedCupGOs[cupIndex].SetActive(available);
-    }
-
-    public void SetCupInteractible(int cupIndex, bool interactible)
-    {
-        m_unclaimedCupButtons[cupIndex].interactable = interactible;
-    }
-
-    //TODO: this should be in logic not UI
-    public bool IsCupInteractible(int cupIndex)
-    {
-        return m_unclaimedCupButtons[cupIndex].interactable;
-    }
     #if JAKE_ZERO
     void NewGame()
     {
@@ -964,9 +991,7 @@ public class GameUI : MonoBehaviour
 
         m_chosenHandCards = new int[4];
 
-        m_playerCubeCountsTexts = new Text[GameLogic.PlayerCount, GameLogic.CubeTypeCount];
         m_playerCubeCounts = new int[GameLogic.PlayerCount, GameLogic.CubeTypeCount];
-        m_playerWildcardCubeCountTexts = new Text[GameLogic.PlayerCount];
         m_playerWildcardCubeCounts = new int[GameLogic.PlayerCount];
         m_playerHandGOs = new GameObject[GameLogic.PlayerCount];
         m_playerCardBackgrounds = new Image[GameLogic.PlayerCount, GameLogic.HandSize];

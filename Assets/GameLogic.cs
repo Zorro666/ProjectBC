@@ -60,7 +60,6 @@ public class GameLogic : MonoBehaviour
     Card[,] m_playerHands;
 
     //TODO: make a Player class and store this data per Player
-    Text[,] m_playerCubeCountsTexts;
     Text[] m_playerWildcardCubeCountTexts;
     GameObject[] m_playerHandGOs;
     Image[,] m_playerCardOutlines;
@@ -567,19 +566,6 @@ public class GameLogic : MonoBehaviour
         {
             var playerUIRootName = gameBoardUIRootName + (Player)player + "Player/";
             var playerCubesBackgroundRootName = playerUIRootName + "CubesBackground/";
-            var playerCupsRootName = playerUIRootName + "CupsBackground/";
-            for (var cubeType = 0; cubeType < GameLogic.CubeTypeCount; ++cubeType)
-            {
-                var cubeCountText = playerCubesBackgroundRootName + (CupCardCubeColour)cubeType;
-                var cubeCountGO = GameObject.Find(cubeCountText);
-                if (cubeCountGO == null)
-                    Debug.LogError("Can't find " + (CupCardCubeColour)cubeType + " cube count GameObject " + cubeCountText);
-                m_playerCubeCountsTexts[player, cubeType] = cubeCountGO.GetComponent<Text>();
-                if (m_playerCubeCountsTexts[player, cubeType] == null)
-                    Debug.LogError("Can't find " + (CupCardCubeColour)cubeType + " cube count UI Text Component");
-
-                m_playerCups[player, cubeType] = false;
-            }
             var wildcardCubeCountText = playerCubesBackgroundRootName + "White";
             var wildcardCubeCountGO = GameObject.Find(wildcardCubeCountText);
             if (wildcardCubeCountGO == null)
@@ -617,6 +603,7 @@ public class GameLogic : MonoBehaviour
                 if (m_playerCardValues[player, card] == null)
                     Debug.LogError("Can't find Player " + (Player)player + " Card[" + cardIndex + " Value Text " + playerCardValueName);
             }
+            var playerCupsRootName = playerUIRootName + "CupsBackground/";
             for (var cupIndex = 0; cupIndex < GameLogic.MaxCupsPerPlayer; ++cupIndex)
             {
                 var playerCupIndex = (cupIndex + 1);
@@ -678,12 +665,13 @@ public class GameLogic : MonoBehaviour
         {
             for (var cubeType = 0; cubeType < GameLogic.CubeTypeCount; ++cubeType)
             {
-                m_playerCubeCountsTexts[player, cubeType].color = GetCardCubeColour((CupCardCubeColour)cubeType);
+                m_gameUI.SetPlayerCubeCountColour(player, cubeType, GetCardCubeColour((CupCardCubeColour)cubeType));
                 m_playerCubeCounts[player, cubeType] = 0;
             }
             for (var cupIndex = 0; cupIndex < GameLogic.MaxCupsPerPlayer; ++cupIndex)
             {
                 m_playerCupGOs[player, cupIndex].SetActive(false);
+                m_playerCups[player, cupIndex] = false;
             }
             m_playerWildcardCubeCounts[player] = 0;
         }
@@ -804,7 +792,7 @@ public class GameLogic : MonoBehaviour
         for (var cubeIndex = 0; cubeIndex < GameLogic.CubeTypeCount; ++cubeIndex)
         {
             var cubeValue = m_playerCubeCounts[playerIndex, cubeIndex];
-            m_playerCubeCountsTexts[playerIndex, cubeIndex].text = cubeValue.ToString();
+            m_gameUI.SetPlayerCubeCountValue(playerIndex, cubeIndex, cubeValue);
         }
         var wildcardCubeCount = m_playerWildcardCubeCounts[playerIndex];
         m_playerWildcardCubeCountTexts[playerIndex].text = wildcardCubeCount.ToString();
@@ -1102,7 +1090,6 @@ public class GameLogic : MonoBehaviour
 
         m_chosenHandCards = new int[4];
 
-        m_playerCubeCountsTexts = new Text[GameLogic.PlayerCount, GameLogic.CubeTypeCount];
         m_playerCubeCounts = new int[GameLogic.PlayerCount, GameLogic.CubeTypeCount];
         m_playerWildcardCubeCountTexts = new Text[GameLogic.PlayerCount];
         m_playerWildcardCubeCounts = new int[GameLogic.PlayerCount];
