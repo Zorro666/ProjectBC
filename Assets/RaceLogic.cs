@@ -3,7 +3,12 @@ using BC;
 
 public class RaceLogic
 {
+    public delegate int CubesRemainingInBagDelegate();
+    public delegate CupCardCubeColour NextCubeDelegate();
+
     GameLogic m_gameLogic;
+    NextCubeDelegate m_nextCube;
+    CubesRemainingInBagDelegate m_cubesRemainingInBag;
 
     RaceState m_state;
     Card[,] m_cards;
@@ -92,7 +97,7 @@ public class RaceLogic
                 m_cardsRemaining[playerIndex, colour] = 0;
         }
 
-        if (m_gameLogic.CubesRemainingCount < NumberOfCubes)
+        if (m_cubesRemainingInBag() < NumberOfCubes)
             m_state = RaceState.Finished;
 
         if (m_state == RaceState.Finished)
@@ -106,7 +111,7 @@ public class RaceLogic
 
         for (var i = 0; i < NumberOfCubes; i++)
         {
-            var cubeColour = m_gameLogic.NextCube();
+            var cubeColour = m_nextCube();
             var colour = (int)cubeColour;
             if (m_raceUI)
             {
@@ -169,8 +174,14 @@ public class RaceLogic
         return Player.Unknown;
     }
 
-    public void Initialise(int numberOfCubes, RaceUI raceUI, GameLogic gamelogic) 
+    public void Initialise(int numberOfCubes, RaceUI raceUI, 
+                           CubesRemainingInBagDelegate cubesRemainingInBag,
+                           NextCubeDelegate nextCube,
+                           GameLogic gamelogic) 
     {
+        m_cubesRemainingInBag = cubesRemainingInBag;
+        m_nextCube = nextCube;
+
         m_gameLogic = gamelogic;
         m_raceUI = raceUI;
         NumberOfCubes = numberOfCubes;
@@ -181,7 +192,7 @@ public class RaceLogic
         m_winner = Player.Unknown;
     }
 
-    public void NewGame() 
+    public void NewGame()
     {
         if ((NumberOfCubes % 2) == 1)
             m_state = RaceState.Lowest;

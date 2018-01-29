@@ -94,9 +94,9 @@ public class GameLogic : MonoBehaviour
         get { return 3; }
     }
 
-    public int CubesRemainingCount
+    public int GetCubesRemainingCount()
     {
-        get { return m_cubesRemainingCount; }
+        return m_cubesRemainingCount;
     }
 
     public void DiscardCard(Card card)

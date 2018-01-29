@@ -5,6 +5,7 @@ public class Race : MonoBehaviour
 {
     RaceLogic m_raceLogic;
     RaceUI m_raceUI;
+    GameLogic m_gameLogic;
 
     public Player Winner
     {
@@ -44,13 +45,17 @@ public class Race : MonoBehaviour
         m_raceLogic.StartRace();
     }
 
-	public void Initialise(GameLogic gamelogic) 
+	public void Initialise(GameLogic gameLogic) 
     {
+        m_gameLogic = gameLogic;
         m_raceUI = GetComponent<RaceUI>();
         if (m_raceUI == null)
             Debug.LogError("m_raceUI is NULL");
-        m_raceUI.Initialise(gamelogic);
-        m_raceLogic.Initialise(m_raceUI.NumberOfCubes, m_raceUI, gamelogic);
+        m_raceUI.Initialise(gameLogic);
+        m_raceLogic.Initialise(m_raceUI.NumberOfCubes, m_raceUI, 
+                               m_gameLogic.GetCubesRemainingCount, 
+                               m_gameLogic.NextCube,
+                               gameLogic);
     }
 
     public void NewGame() 

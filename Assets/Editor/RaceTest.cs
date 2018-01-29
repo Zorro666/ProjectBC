@@ -5,12 +5,25 @@ using BC;
 
 public class RaceTest 
 {
+    int GetCubesRemainingInBag()
+    {
+        return 10;
+    }
+
+    CupCardCubeColour NextCube()
+    {
+        return CupCardCubeColour.Red;
+    }
+
     RaceLogic CreateRace(int numberOfCubes)
     {
         RaceLogic raceLogic = new RaceLogic();
         RaceUI raceUI = null;
         GameLogic gameLogic = null;
-        raceLogic.Initialise(numberOfCubes, raceUI, gameLogic);
+        raceLogic.Initialise(numberOfCubes, raceUI, 
+                             GetCubesRemainingInBag, 
+                             NextCube,
+                             gameLogic);
         return raceLogic;
     }
 
@@ -29,13 +42,10 @@ public class RaceTest
     }
 
     // Test
-    // Need to work out what to do about m_gameLogic being used in RaceLogic
-    // Need: 
-    //m_gameLogic.CubesRemainingCount
-    //m_gameLogic.NextCube();
-    //m_gameLogic.AddCubeToPlayer(m_winner, card.Colour);
-    //m_gameLogic.DiscardCard(m_cards[playerIndex, cardIndex]);
-    //m_gameLogic.FinishRace(m_winner, this);
+    // Need to make these as delegates in RaceLogic 
+    //void AddCubeToPlayer(Player winner, CupCardCubeColour cubeColour);
+    //void DiscardCard(Card card);
+    //void FinishRace(Player winner, RaceLogic race);
 
     //Player Race.ComputeWinner()
     //Need to setup m_cards
