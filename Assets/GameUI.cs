@@ -234,7 +234,7 @@ public class GameUI : MonoBehaviour
         {
             if (m_unclaimedCupGOs[cupIndex] == null)
             {
-                Debug.LogError("m_unclaimedCupGOs["+cupIndex+"] is null");
+                Debug.LogError("m_unclaimedCupGOs[" + cupIndex + "] is null");
                 return false;
             }
             if (m_unclaimedCupButtons == null)
