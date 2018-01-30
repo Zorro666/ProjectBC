@@ -59,9 +59,6 @@ public class GameLogic : MonoBehaviour
     bool[,] m_playerCups;
     Card[,] m_playerHands;
 
-    //TODO: make a Player class and store this data per Player
-    GameObject[] m_playerGenericButtons;
-
     GameUI m_gameUI;
 
     static public int CubeTypeCount => (int)CupCardCubeColour.Count;
@@ -372,7 +369,7 @@ public class GameLogic : MonoBehaviour
 
     void ExitFinishingRace()
     {
-        HidePlayerGenericButtons();
+        m_gameUI.HidePlayerGenericButtons();
         if (ComputeHasGameEnded())
             return;
 
@@ -385,7 +382,7 @@ public class GameLogic : MonoBehaviour
 
     void ExitFinishingGame()
     {
-        HidePlayerGenericButtons();
+        m_gameUI.HidePlayerGenericButtons();
         m_state = GameState.Initialising;
     }
 
@@ -400,7 +397,7 @@ public class GameLogic : MonoBehaviour
     {
         ResetChosenHandCards();
 
-        HidePlayerGenericButtons();
+        m_gameUI.HidePlayerGenericButtons();
         ShowHand(m_currentPlayer);
         if (PlayerCanPlayCardOnARace())
         {
@@ -543,15 +540,6 @@ public class GameLogic : MonoBehaviour
         foreach (var race in m_races)
             race.Initialise(gamelogic);
 
-        var gameBoardUIRootName = "/GameBoard/UI/";
-        for (var player = 0; player < GameLogic.PlayerCount; ++player)
-        {
-            var playerUIRootName = gameBoardUIRootName + (Player)player + "Player/";
-            var playerGenericButtonName = playerUIRootName + "GenericButton";
-            m_playerGenericButtons[player] = GameObject.Find(playerGenericButtonName);
-            if (m_playerGenericButtons[player] == null)
-                Debug.LogError("Can't find GenericButton for Player " + (Player)player + " " + playerGenericButtonName);
-        }
         m_gameUI.Initialise();
     }
 
@@ -570,7 +558,7 @@ public class GameLogic : MonoBehaviour
     void NewGame()
     {
         ResetUnclaimedCups();
-        HidePlayerGenericButtons();
+        m_gameUI.HidePlayerGenericButtons();
         CreateDrawDeck();
         ShuffleDrawDeck();
         DealHands();
@@ -780,6 +768,11 @@ public class GameLogic : MonoBehaviour
         UpdateStatus();
     }
 
+    void ShowPlayerGenericButton()
+    {
+        m_gameUI.ShowPlayerGenericButton((int)m_currentPlayer);
+    }
+
     bool NeedEndPlayerTurn()
     {
         for (var cubeIndex = 0; cubeIndex < GameLogic.CubeTypeCount; ++cubeIndex)
@@ -811,7 +804,7 @@ public class GameLogic : MonoBehaviour
 
     void ExitEndingPlayerTurn()
     {
-        HidePlayerGenericButtons();
+        m_gameUI.HidePlayerGenericButtons();
         HideHands();
         if (m_lastRaceWinner != Player.Unknown)
             m_currentPlayer = m_lastRaceWinner;
@@ -1012,7 +1005,6 @@ public class GameLogic : MonoBehaviour
         m_playerWildcardCubeCounts = new int[GameLogic.PlayerCount];
         m_playerHands = new Card[GameLogic.PlayerCount, GameLogic.HandSize];
         m_playerCups = new bool[GameLogic.PlayerCount, GameLogic.CubeTypeCount];
-        m_playerGenericButtons = new GameObject[GameLogic.PlayerCount];
 
         m_cupOwner = new Player[GameLogic.CubeTypeCount];
     }
@@ -1108,18 +1100,9 @@ public class GameLogic : MonoBehaviour
             playerEnd = GameLogic.PlayerCount;
         }
         for (var p = playerStart; p < playerEnd; ++p)
-            m_playerGenericButtons[p].GetComponentInChildren<Text>().text = text;
-    }
-
-    void ShowPlayerGenericButton()
-    {
-        m_playerGenericButtons[(int)m_currentPlayer].SetActive(true);
-    }
-
-    void HidePlayerGenericButtons()
-    {
-        for (var p = 0; p < GameLogic.PlayerCount; ++p)
-            m_playerGenericButtons[p].SetActive(false);
+        {
+            m_gameUI.SetPlayerGenericButtonText(p, text);
+        }
     }
 
     void DeSelectCard(Player player, int cardIndex)

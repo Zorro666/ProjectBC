@@ -19,10 +19,7 @@ public class GameUI : MonoBehaviour
     GameObject[,] m_playerCupGOs;
     Image[,] m_playerCupImages;
     Text[,] m_playerCupValues;
-
-#if JAKE_ZERO
     GameObject[] m_playerGenericButtons;
-#endif
 
     public void SetStatusText(string text)
     {
@@ -92,6 +89,22 @@ public class GameUI : MonoBehaviour
         m_playerCupGOs[playerIndex, cupIndex].SetActive(active);
     }
 
+    public void ShowPlayerGenericButton(int playerIndex)
+    {
+        m_playerGenericButtons[playerIndex].SetActive(true);
+    }
+
+    public void HidePlayerGenericButtons()
+    {
+        for (var p = 0; p < GameLogic.PlayerCount; ++p)
+            m_playerGenericButtons[p].SetActive(false);
+    }
+
+    public void SetPlayerGenericButtonText(int playerIndex, string text)
+    {
+        m_playerGenericButtons[playerIndex].GetComponentInChildren<Text>().text = text;
+    }
+
     void Awake()
     {
         m_unclaimedCupGOs = new GameObject[GameLogic.CubeTypeCount];
@@ -105,6 +118,7 @@ public class GameUI : MonoBehaviour
         m_playerCupGOs = new GameObject[GameLogic.PlayerCount, GameLogic.MaxCupsPerPlayer];
         m_playerCupImages = new Image[GameLogic.PlayerCount, GameLogic.MaxCupsPerPlayer];
         m_playerCupValues = new Text[GameLogic.PlayerCount, GameLogic.MaxCupsPerPlayer];
+        m_playerGenericButtons = new GameObject[GameLogic.PlayerCount];
     }
 
     public void Initialise()
@@ -130,6 +144,11 @@ public class GameUI : MonoBehaviour
             if (m_playerHandGOs[player] == null)
                 Debug.LogError("Can't find Player Hand UI GameObject " + (Player)player + " " + playerHandRootName);
 
+            var playerGenericButtonName = playerUIRootName + "GenericButton";
+            m_playerGenericButtons[player] = GameObject.Find(playerGenericButtonName);
+            if (m_playerGenericButtons[player] == null)
+                Debug.LogError("Can't find GenericButton for Player " + (Player)player + " " + playerGenericButtonName);
+
             var playerCupsRootName = playerUIRootName + "CupsBackground/";
             for (var cupIndex = 0; cupIndex < GameLogic.MaxCupsPerPlayer; ++cupIndex)
             {
@@ -138,6 +157,10 @@ public class GameUI : MonoBehaviour
                 m_playerCupGOs[player, cupIndex] = GameObject.Find(cupImageName);
                 if (m_playerCupGOs[player, cupIndex] == null)
                     Debug.LogError("Can't find Cup " + playerCupIndex + " Image GameObject " + cupImageName);
+
+                m_playerCupImages[player, cupIndex] = m_playerCupGOs[player, cupIndex].GetComponent<Image>();
+                if (m_playerCupImages[player, cupIndex] == null)
+                    Debug.LogError("Can't find Cup " + playerCupIndex + " Image Component");
 
                 var cupValueName = cupImageName + "/Value";
                 var cupValueGO = GameObject.Find(cupValueName);
@@ -195,5 +218,94 @@ public class GameUI : MonoBehaviour
             if (m_playerWildcardCubeCountTexts[player] == null)
                 Debug.LogError("Can't find wildcard cube count UI Text Component");
         }
+        if (!Validate())
+            Debug.LogError("Validation failed!");
+    }
+
+    bool Validate()
+    {
+        if (StatusText == null)
+        {
+            Debug.LogError("StatusText is null");
+            return false;
+        }
+
+        for (int cupIndex = 0; cupIndex < GameLogic.CubeTypeCount; cupIndex++)
+        {
+            if (m_unclaimedCupGOs[cupIndex] == null)
+            {
+                Debug.LogError("m_unclaimedCupGOs["+cupIndex+"] is null");
+                return false;
+            }
+            if (m_unclaimedCupButtons == null)
+            {
+                Debug.LogError("m_unclaimedCupButtons[" + cupIndex + "] is null");
+                return false;
+            }
+        }
+        for (int playerIndex = 0; playerIndex < GameLogic.PlayerCount; playerIndex++)
+        {
+            if (m_playerWildcardCubeCountTexts[playerIndex] == null)
+            {
+                Debug.LogError("m_playerWildcardCubeCountTexts[" + playerIndex + "] is null");
+                return false;
+            }
+            if (m_playerHandGOs[playerIndex] == null)
+            {
+                Debug.LogError("m_playerHandGOs[" + playerIndex + "] is null");
+                return false;
+            }
+            if (m_playerGenericButtons[playerIndex] == null)
+            {
+                Debug.LogError("m_playerGenericButtons[" + playerIndex + "] is null");
+                return false;
+            }
+
+            for (int cubeIndex = 0; cubeIndex < GameLogic.CubeTypeCount; cubeIndex++)
+            {
+                if (m_playerCubeCountsTexts[playerIndex, cubeIndex] == null)
+                {
+                    Debug.LogError("m_playerCubeCountsTexts[" + playerIndex + "," + cubeIndex + "] is null");
+                    return false;
+                }
+            }
+            for (var card = 0; card < GameLogic.HandSize; ++card)
+            {
+                if (m_playerCardOutlines[playerIndex, card] == null)
+                {
+                    Debug.LogError("m_playerCardOutlines[" + playerIndex + "," + card + "] is null");
+                    return false;
+                }
+                if (m_playerCardBackgrounds[playerIndex, card] == null)
+                {
+                    Debug.LogError("m_playerCardBackgrounds[" + playerIndex + "," + card + "] is null");
+                    return false;
+                }
+                if (m_playerCardValues[playerIndex, card] == null)
+                {
+                    Debug.LogError("m_playerCardValues[" + playerIndex + "," + card + "] is null");
+                    return false;
+                }
+            }
+            for (var cupIndex = 0; cupIndex < GameLogic.MaxCupsPerPlayer; ++cupIndex)
+            {
+                if (m_playerCupGOs[playerIndex, cupIndex] == null)
+                {
+                    Debug.LogError("m_playerCupGOs[" + playerIndex + "," + cupIndex + "] is null");
+                    return false;
+                }
+                if (m_playerCupImages[playerIndex, cupIndex] == null)
+                {
+                    Debug.LogError("m_playerCupImages[" + playerIndex + "," + cupIndex + "] is null");
+                    return false;
+                }
+                if (m_playerCupValues[playerIndex, cupIndex] == null)
+                {
+                    Debug.LogError("m_playerCupValues[" + playerIndex + "," + cupIndex + "] is null");
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 }
