@@ -15,13 +15,13 @@ public class RaceLogic
     DiscardCardDelegate m_DiscardCard;
     FinishRaceDelegate m_FinishRace;
 
-    public RaceState State { get; private set; }
     Card[,] m_cards;
     int[] m_cardsPlayed;
     int[,] m_cardsRemaining;
     Player m_winner;
     RaceUI m_raceUI;
 
+    public RaceState State { get; private set; }
     public int NumberOfCubes { get; private set; }
     public Player Winner
     {
@@ -179,6 +179,31 @@ public class RaceLogic
         return Player.Unknown;
     }
 
+    void FinishRace(Player currentPlayer)
+    {
+        m_winner = ComputeWinner(currentPlayer);
+        Debug.Log(State + " Player " + m_winner + " won");
+        for (var cardIndex = 0; cardIndex < NumberOfCubes; ++cardIndex)
+        {
+            var playerIndex = (int)m_winner;
+            Card card = m_cards[playerIndex, cardIndex];
+            m_AddCubeToPlayer(m_winner, card.Colour);
+        }
+
+        for (var playerIndex = 0; playerIndex < GameLogic.PlayerCount; ++playerIndex)
+        {
+            for (var cardIndex = 0; cardIndex < NumberOfCubes; ++cardIndex)
+                m_DiscardCard(m_cards[playerIndex, cardIndex]);
+        }
+
+        if (State == RaceState.Lowest)
+            State = RaceState.Highest;
+        else if (State == RaceState.Highest)
+            State = RaceState.Lowest;
+
+        m_FinishRace(m_winner, this);
+    }
+
     public void Initialise(int numberOfCubes, RaceUI raceUI, 
                            CubesRemainingInBagDelegate CubesRemainingInBag,
                            NextCubeDelegate NextCube,
@@ -208,31 +233,6 @@ public class RaceLogic
         else
             State = RaceState.Highest;
         StartRace();
-    }
-
-    public void FinishRace(Player currentPlayer)
-    {
-        m_winner = ComputeWinner(currentPlayer);
-        Debug.Log(State + " Player " + m_winner + " won");
-        for (var cardIndex = 0; cardIndex < NumberOfCubes; ++cardIndex)
-        {
-            var playerIndex = (int)m_winner;
-            Card card = m_cards[playerIndex, cardIndex];
-            m_AddCubeToPlayer(m_winner, card.Colour);
-        }
-
-        for (var playerIndex = 0; playerIndex < GameLogic.PlayerCount; ++playerIndex)
-        {
-            for (var cardIndex = 0; cardIndex < NumberOfCubes; ++cardIndex)
-                m_DiscardCard(m_cards[playerIndex, cardIndex]);
-        }
-
-        if (State == RaceState.Lowest)
-            State = RaceState.Highest;
-        else if (State == RaceState.Highest)
-            State = RaceState.Lowest;
-
-        m_FinishRace(m_winner, this);
     }
 
     public bool PlayCard(Player side, Card card, Player currentPlayer)
