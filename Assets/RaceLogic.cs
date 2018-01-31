@@ -215,6 +215,7 @@ public class RaceLogic
         m_raceUI = raceUI;
         NumberOfCubes = numberOfCubes;
         State = RaceState.Finished;
+        Winner = Player.Unknown;
         m_cards = new Card[GameLogic.PlayerCount, NumberOfCubes];
         m_cardsPlayed = new int[GameLogic.PlayerCount];
         m_cardsRemaining = new int[GameLogic.PlayerCount, GameLogic.CubeTypeCount];
