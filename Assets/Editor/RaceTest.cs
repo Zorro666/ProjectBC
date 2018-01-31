@@ -165,9 +165,8 @@ public class RaceTest
         Assert.That(m_raceLogic.State, Is.EqualTo(RaceState.Lowest));
     }
 
-    //TODO: Tests
-    //Player Race.ComputeWinner()
-    //Need to setup m_cards
-    //public bool PlayCard(BC.Player player, Card card, BC.Player currentPlayer)
-    // Need to setup m_cardsPlayed & m_cardsRemaining : to test return false cases
+    //TODO: Tests 
+    // The winner when completing a race : Highest, Lowest, current player in a tie (Highest or Lowest)
+    // CanPlayCard
+    // PlayCard : true and false cases
 }
