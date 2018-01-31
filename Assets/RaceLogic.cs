@@ -235,37 +235,37 @@ public class RaceLogic
         m_FinishRace(m_winner, this);
     }
 
-    public bool PlayCard(Player player, Card card, Player currentPlayer)
+    public bool PlayCard(Player side, Card card, Player currentPlayer)
     {
-        //Debug.Log(Name + " PlayCard " + player + " " + card.Colour + " " + card.Value);
+        //Debug.Log(Name + " PlayCard " + side + " " + card.Colour + " " + card.Value);
         if (State == RaceState.Finished)
         {
             Debug.Log(Name + " race is Finished");
             return false;
         }
-        var playerIndex = (int)player;
-        var cardIndex = m_cardsPlayed[playerIndex];
+        var sideIndex = (int)side;
+        var cardIndex = m_cardsPlayed[sideIndex];
         if (cardIndex == NumberOfCubes)
         {
-            Debug.Log(player + " player is full");
+            Debug.Log(side + " side is full");
             return false;
         }
         var cardColour = (int)card.Colour;
-        if (m_cardsRemaining[playerIndex, cardColour] == 0)
+        if (m_cardsRemaining[sideIndex, cardColour] == 0)
         {
-            Debug.Log(player + " player " + card.Colour + " can't be played");
+            Debug.Log(side + " side " + card.Colour + " can't be played");
             return false;
         }
-        --m_cardsRemaining[playerIndex, cardColour];
-        ++m_cardsPlayed[playerIndex];
+        --m_cardsRemaining[sideIndex, cardColour];
+        ++m_cardsPlayed[sideIndex];
         if (m_raceUI)
         {
-            m_raceUI.SetPlayedCardToCard(playerIndex, cardIndex, card);
-            m_raceUI.SetPlayCardButtons(playerIndex, cardIndex, true);
-            m_raceUI.SetPlayCardButtonInteractable(playerIndex, cardIndex, false);
+            m_raceUI.SetPlayedCardToCard(sideIndex, cardIndex, card);
+            m_raceUI.SetPlayCardButtons(sideIndex, cardIndex, true);
+            m_raceUI.SetPlayCardButtonInteractable(sideIndex, cardIndex, false);
         }
-        m_cards[playerIndex, cardIndex] = card;
-        //Debug.Log(m_cards[playerIndex, cardIndex].Value);
+        m_cards[sideIndex, cardIndex] = card;
+        //Debug.Log(m_cards[sideIndex, cardIndex].Value);
 
         bool raceFinished = true;
         foreach (var cardsPlayed in m_cardsPlayed)
