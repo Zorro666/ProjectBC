@@ -7,11 +7,6 @@ public class Race : MonoBehaviour
     RaceUI m_raceUI;
     GameLogic m_gameLogic;
 
-    public Player Winner
-    {
-        get { return m_raceLogic.Winner; }
-    }
-
     void Awake()
     {
         m_raceLogic = new RaceLogic();
@@ -25,9 +20,19 @@ public class Race : MonoBehaviour
     {
     }
 
-    public bool CanPlayCard(Card card)
+    public void Initialise(GameLogic gameLogic)
     {
-        return m_raceLogic.CanPlayCard(card);
+        m_gameLogic = gameLogic;
+        m_raceUI = GetComponent<RaceUI>();
+        if (m_raceUI == null)
+            Debug.LogError("m_raceUI is NULL");
+        m_raceUI.Initialise(gameLogic);
+        m_raceLogic.Initialise(m_raceUI.NumberOfCubes, m_raceUI,
+                               m_gameLogic.GetCubesRemainingCount,
+                               m_gameLogic.NextCube,
+                               m_gameLogic.AddCubeToPlayer,
+                               m_gameLogic.DiscardCard,
+                               m_gameLogic.FinishRace);
     }
 
     public void ResetPlayCardButtons()
@@ -45,29 +50,14 @@ public class Race : MonoBehaviour
         m_raceLogic.StartRace();
     }
 
-	public void Initialise(GameLogic gameLogic) 
+    public bool CanPlayCard(Card card)
     {
-        m_gameLogic = gameLogic;
-        m_raceUI = GetComponent<RaceUI>();
-        if (m_raceUI == null)
-            Debug.LogError("m_raceUI is NULL");
-        m_raceUI.Initialise(gameLogic);
-        m_raceLogic.Initialise(m_raceUI.NumberOfCubes, m_raceUI,
-                               m_gameLogic.GetCubesRemainingCount,
-                               m_gameLogic.NextCube,
-                               m_gameLogic.AddCubeToPlayer,
-                               m_gameLogic.DiscardCard,
-                               m_gameLogic.FinishRace);
+        return m_raceLogic.CanPlayCard(card);
     }
 
     public void NewGame() 
     {
         m_raceLogic.NewGame();
-    }
-
-    public void FinishRace(Player currentPlayer)
-    {
-        m_raceLogic.FinishRace(currentPlayer);
     }
 
     public bool PlayCard(Player player, Card card, Player currentPlayer)
