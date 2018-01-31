@@ -1,11 +1,12 @@
 ﻿using NUnit.Framework;
 using BC;
 
-public class RaceTest 
+public class RaceTest
 {
     int NumCubesInBag;
     int FinishRaceCallCount;
     RaceLogic m_raceLogic;
+    Player RaceWinner;
 
     int GetCubesRemainingInBag()
     {
@@ -28,6 +29,7 @@ public class RaceTest
     void FinishRace(RaceLogic race)
     {
         FinishRaceCallCount += 1;
+        RaceWinner = race.Winner;
     }
 
     void CreateRace(int numberOfCubes)
@@ -35,31 +37,33 @@ public class RaceTest
         FinishRaceCallCount = 0;
         m_raceLogic = new RaceLogic();
         RaceUI raceUI = null;
-        m_raceLogic.Initialise(numberOfCubes, raceUI, 
-                             GetCubesRemainingInBag, 
+        m_raceLogic.Initialise(numberOfCubes, raceUI,
+                             GetCubesRemainingInBag,
                              NextCube,
                              AddCubeToPlayer,
                              DiscardCard,
                              FinishRace);
     }
 
-    void CompleteARace(int numberOfCubes, RaceState startingState)
+    void AddCardsToRace(Player side, Card[] cards, int numberOfCards)
     {
-        Assert.That(m_raceLogic.State, Is.EqualTo(startingState));
-
-        // Finish the race by laying cards on it
-        Player currentPlayer = Player.Left;
-        int cardValue = 1;
-        for (int i = 0; i < numberOfCubes; ++i)
+        for (int i = 0; i < numberOfCards; ++i)
         {
-            for (int side = 0; side < GameLogic.PlayerCount; ++side)
-            {
-                Card card = new Card(CupCardCubeColour.Red, cardValue);
-                cardValue += 1;
-                currentPlayer = (Player)side;
-                Assert.That(m_raceLogic.PlayCard(currentPlayer, card, currentPlayer), Is.True);
-            }
+            Assert.That(m_raceLogic.PlayCard(side, cards[i], side), Is.True);
         }
+    }
+
+    void CompleteTestRace(int numberOfCubes)
+    {
+        Card[] leftCards = new Card[numberOfCubes];
+        Card[] rightCards = new Card[numberOfCubes];
+        for (int c = 0; c < numberOfCubes; ++c)
+        {
+            leftCards[c] = new Card(CupCardCubeColour.Red, c + 1);
+            rightCards[c] = new Card(CupCardCubeColour.Red, 13 - c);
+        }
+        AddCardsToRace(Player.Left, leftCards, numberOfCubes);
+        AddCardsToRace(Player.Right, rightCards, numberOfCubes);
     }
 
     RaceState ToggleState(RaceState state)
@@ -69,6 +73,32 @@ public class RaceTest
         if (state == RaceState.Highest)
             return RaceState.Lowest;
         return RaceState.Highest;
+    }
+
+    void CreateLowestRace(int numberOfCubes)
+    {
+        NumCubesInBag = 10;
+        CreateRace(numberOfCubes);
+        m_raceLogic.NewGame();
+        if ((numberOfCubes % 2) == 0)
+        {
+            CompleteTestRace(numberOfCubes);
+            FinishRaceCallCount = 0;
+            m_raceLogic.StartRace();
+        }
+    }
+
+    void CreateHighestRace(int numberOfCubes)
+    {
+        NumCubesInBag = 10;
+        CreateRace(numberOfCubes);
+        m_raceLogic.NewGame();
+        if ((numberOfCubes % 2) == 1)
+        {
+            CompleteTestRace(numberOfCubes);
+            FinishRaceCallCount = 0;
+            m_raceLogic.StartRace();
+        }
     }
 
 	[Test]
@@ -130,7 +160,8 @@ public class RaceTest
 
         RaceState expectedState = RaceState.Finished;
         expectedState = ToggleState(startingState);
-        CompleteARace(numberOfCubes, startingState);
+        Assert.That(m_raceLogic.State, Is.EqualTo(startingState));
+        CompleteTestRace(numberOfCubes);
         Assert.That(FinishRaceCallCount, Is.EqualTo(1), "Finish Race was not called once");
         Assert.That(m_raceLogic.State, Is.EqualTo(expectedState));
 
@@ -138,35 +169,73 @@ public class RaceTest
         startingState = expectedState;
         expectedState = ToggleState(startingState);
         m_raceLogic.StartRace();
-        CompleteARace(numberOfCubes, startingState);
+        Assert.That(m_raceLogic.State, Is.EqualTo(startingState));
+        CompleteTestRace(numberOfCubes);
         Assert.That(FinishRaceCallCount, Is.EqualTo(1), "Finish Race was not called once");
         Assert.That(m_raceLogic.State, Is.EqualTo(expectedState));
     }
 
     [Test]
-    public void FinishRaceMakesLowestRaceBecomeHighest([Values(1, 3)] int numberOfCubes)
+    public void FinishRaceMakesLowestRaceBecomeHighest([Values(1, 2, 3, 4)] int numberOfCubes)
     {
-        NumCubesInBag = 10;
-        CreateRace(numberOfCubes);
-        m_raceLogic.NewGame();
-        CompleteARace(numberOfCubes, RaceState.Lowest);
+        CreateLowestRace(numberOfCubes);
+        Assert.That(m_raceLogic.State, Is.EqualTo(RaceState.Lowest));
+        CompleteTestRace(numberOfCubes);
         Assert.That(FinishRaceCallCount, Is.EqualTo(1), "Finish Race was not called once");
         Assert.That(m_raceLogic.State, Is.EqualTo(RaceState.Highest));
     }
 
     [Test]
-    public void FinishRaceMakesHighestRaceBecomeLowest([Values(2, 4)] int numberOfCubes)
+    public void FinishRaceMakesHighestRaceBecomeLowest([Values(1, 2, 3, 4)] int numberOfCubes)
     {
-        NumCubesInBag = 10;
-        CreateRace(numberOfCubes);
-        m_raceLogic.NewGame();
-        CompleteARace(numberOfCubes, RaceState.Highest);
+        CreateHighestRace(numberOfCubes);
+        Assert.That(m_raceLogic.State, Is.EqualTo(RaceState.Highest));
+        CompleteTestRace(numberOfCubes);
         Assert.That(FinishRaceCallCount, Is.EqualTo(1), "Finish Race was not called once");
         Assert.That(m_raceLogic.State, Is.EqualTo(RaceState.Lowest));
     }
 
+    [Test]
+    public void HighestPlayerWinsHighestRace([Values(1, 2, 3, 4)] int numberOfCubes)
+    {
+        CreateHighestRace(numberOfCubes);
+        Assert.That(m_raceLogic.State, Is.EqualTo(RaceState.Highest));
+        CompleteTestRace(numberOfCubes);
+        Assert.That(FinishRaceCallCount, Is.EqualTo(1), "Finish Race was not called once");
+        Assert.That(RaceWinner, Is.EqualTo(Player.Right));
+    }
+
+    [Test]
+    public void LowestPlayerWinsLowestRace([Values(1, 2, 3, 4)] int numberOfCubes)
+    {
+        CreateLowestRace(numberOfCubes);
+        Assert.That(m_raceLogic.State, Is.EqualTo(RaceState.Lowest));
+        CompleteTestRace(numberOfCubes);
+        Assert.That(FinishRaceCallCount, Is.EqualTo(1), "Finish Race was not called once");
+        Assert.That(RaceWinner, Is.EqualTo(Player.Left));
+    }
+
+    [Test]
+    public void CurrentPlayerWinsLowestRace([Values(1, 2, 3, 4)] int numberOfCubes)
+    {
+        CreateLowestRace(numberOfCubes);
+        Assert.That(m_raceLogic.State, Is.EqualTo(RaceState.Lowest));
+        CompleteTestRace(numberOfCubes);
+        Assert.That(FinishRaceCallCount, Is.EqualTo(1), "Finish Race was not called once");
+        Assert.That(RaceWinner, Is.EqualTo(Player.Left));
+    }
+
+    [Test]
+    public void CurrentPlayerWinsHighestRace([Values(1, 2, 3, 4)] int numberOfCubes)
+    {
+        CreateHighestRace(numberOfCubes);
+        Assert.That(m_raceLogic.State, Is.EqualTo(RaceState.Highest));
+        CompleteTestRace(numberOfCubes);
+        Assert.That(FinishRaceCallCount, Is.EqualTo(1), "Finish Race was not called once");
+        Assert.That(RaceWinner, Is.EqualTo(Player.Right));
+    }
     //TODO: Tests 
-    // The winner when completing a race : Highest, Lowest, current player in a tie (Highest or Lowest)
+    // The winner when completing a race : current player in a tie (Highest or Lowest)
     // CanPlayCard
     // PlayCard : true and false cases
 }
