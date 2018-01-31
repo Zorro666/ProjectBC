@@ -25,7 +25,7 @@ public class RaceTest
     {
     }
 
-    void FinishRace(Player winner, RaceLogic race)
+    void FinishRace(RaceLogic race)
     {
         FinishRaceCallCount += 1;
     }

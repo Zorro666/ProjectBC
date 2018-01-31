@@ -7,7 +7,7 @@ public class RaceLogic
     public delegate CupCardCubeColour NextCubeDelegate();
     public delegate void AddCubeToPlayerDelegate(Player winner, CupCardCubeColour cube);
     public delegate void DiscardCardDelegate(Card card);
-    public delegate void FinishRaceDelegate(Player winner, RaceLogic race);
+    public delegate void FinishRaceDelegate(RaceLogic race);
 
     NextCubeDelegate m_NextCube;
     CubesRemainingInBagDelegate m_CubesRemainingInBag;
@@ -18,15 +18,11 @@ public class RaceLogic
     Card[,] m_cards;
     int[] m_cardsPlayed;
     int[,] m_cardsRemaining;
-    Player m_winner;
     RaceUI m_raceUI;
 
     public RaceState State { get; private set; }
     public int NumberOfCubes { get; private set; }
-    public Player Winner
-    {
-        get { return m_winner; }
-    }
+    public Player Winner { get; private set; }
 
     public bool CanPlayCard(Card card)
     {
@@ -129,7 +125,6 @@ public class RaceLogic
         {
             m_raceUI.StartRace(State);
         }
-        m_winner = Player.Unknown;
     }
 
     string Name { get { return "Race" + NumberOfCubes.ToString(); } }
@@ -181,13 +176,13 @@ public class RaceLogic
 
     void FinishRace(Player currentPlayer)
     {
-        m_winner = ComputeWinner(currentPlayer);
-        Debug.Log(State + " Player " + m_winner + " won");
+        Winner = ComputeWinner(currentPlayer);
+        Debug.Log(State + " Player " + Winner + " won");
         for (var cardIndex = 0; cardIndex < NumberOfCubes; ++cardIndex)
         {
-            var playerIndex = (int)m_winner;
+            var playerIndex = (int)Winner;
             Card card = m_cards[playerIndex, cardIndex];
-            m_AddCubeToPlayer(m_winner, card.Colour);
+            m_AddCubeToPlayer(Winner, card.Colour);
         }
 
         for (var playerIndex = 0; playerIndex < GameLogic.PlayerCount; ++playerIndex)
@@ -201,7 +196,7 @@ public class RaceLogic
         else if (State == RaceState.Highest)
             State = RaceState.Lowest;
 
-        m_FinishRace(m_winner, this);
+        m_FinishRace(this);
     }
 
     public void Initialise(int numberOfCubes, RaceUI raceUI, 
@@ -223,7 +218,6 @@ public class RaceLogic
         m_cards = new Card[GameLogic.PlayerCount, NumberOfCubes];
         m_cardsPlayed = new int[GameLogic.PlayerCount];
         m_cardsRemaining = new int[GameLogic.PlayerCount, GameLogic.CubeTypeCount];
-        m_winner = Player.Unknown;
     }
 
     public void NewGame()

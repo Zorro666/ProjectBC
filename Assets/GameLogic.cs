@@ -102,12 +102,12 @@ public class GameLogic : MonoBehaviour
         ++m_playerCubeCounts[(int)player, (int)cubeType];
     }
 
-    public void FinishRace(Player winner, RaceLogic race)
+    public void FinishRace(RaceLogic race)
     {
         UpdateCubeCounts();
         m_turnState = TurnState.FinishingRace;
         m_finishedRace = race;
-        m_lastRaceWinner = m_finishedRace.Winner;
+        m_lastRaceWinner = race.Winner;
         m_frame = 0;
         UpdateStatus();
     }
