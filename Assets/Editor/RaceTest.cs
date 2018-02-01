@@ -343,6 +343,28 @@ public class RaceTest
         m_RaceLogic.PlayCard (Player.Right, new Card (CupCardCubeColour.Red, 2), Player.Left);
         Assert.That (m_RaceLogic.CanPlayCard (new Card (CupCardCubeColour.Red, 3)), Is.False);
     }
+
+    [Test]
+    public void CanPlayCardReturnsTrueIfColourIsAvailable ([Values (1, 2, 3, 4)] int numberOfCubes,
+                                                           [Values (RaceState.Lowest, RaceState.Highest)] RaceState raceType)
+    {
+        if (raceType == RaceState.Lowest) {
+            CreateHighestRace (numberOfCubes);
+        } else {
+            CreateLowestRace (numberOfCubes);
+        }
+        CompleteTestRace (numberOfCubes);
+        m_Cubes = new CupCardCubeColour [4];
+        m_Cubes [0] = CupCardCubeColour.Red;
+        m_Cubes [1] = CupCardCubeColour.Blue;
+        m_Cubes [2] = CupCardCubeColour.Green;
+        m_Cubes [3] = CupCardCubeColour.Yellow;
+        CurrentCubeIndex = 0;
+        FinishRaceCallCount = 0;
+        m_RaceLogic.StartRace ();
+        Assert.That (m_RaceLogic.CanPlayCard (new Card (CupCardCubeColour.Red, 1)), Is.True);
+    }
+
     //TODO: PlayCard tests : false cases : do per side
     // side is full
     // colour not in race
