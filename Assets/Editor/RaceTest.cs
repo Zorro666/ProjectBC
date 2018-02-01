@@ -51,6 +51,16 @@ public class RaceTest
                              FinishRace);
     }
 
+    void PrepareRaceOfSpecificType (int numberOfCubes, RaceState raceType)
+    {
+        if (raceType == RaceState.Lowest) {
+            CreateHighestRace (numberOfCubes);
+        } else {
+            CreateLowestRace (numberOfCubes);
+        }
+        CompleteTestRace (numberOfCubes);
+    }
+
     void AddCardsToRace (Player side, Card [] cards, int numberOfCards)
     {
         for (int i = 0; i < numberOfCards; ++i) {
@@ -155,12 +165,7 @@ public class RaceTest
     {
         Assert.That (numberOfCubes, Is.GreaterThan (1), "A tied race needs at least two cubes");
         NumCubesInBag = 10;
-        if (raceType == RaceState.Lowest) {
-            CreateHighestRace (numberOfCubes);
-        } else {
-            CreateLowestRace (numberOfCubes);
-        }
-        CompleteTestRace (numberOfCubes);
+        PrepareRaceOfSpecificType (numberOfCubes, raceType);
         m_Cubes = new CupCardCubeColour [4];
         m_Cubes [0] = CupCardCubeColour.Red;
         m_Cubes [1] = CupCardCubeColour.Blue;
@@ -283,7 +288,6 @@ public class RaceTest
         Assert.That (RaceWinner, Is.EqualTo (Player.Left));
     }
 
-    // The winner when completing a race : current player in a tie (Highest or Lowest)
     [Test]
     public void CurrentPlayerWinsTiedRace ([Values (2, 3, 4)] int numberOfCubes,
                                           [Values (Player.Left, Player.Right)] Player startPlayer,
@@ -312,25 +316,19 @@ public class RaceTest
     public void CanPlayCardReturnsFalseIfColourNotOnRace ([Values (1, 2, 3, 4)] int numberOfCubes,
                                                           [Values (RaceState.Lowest, RaceState.Highest)] RaceState raceType)
     {
-        if (raceType == RaceState.Lowest) {
-            CreateHighestRace (numberOfCubes);
-        } else {
-            CreateLowestRace (numberOfCubes);
-        }
+        PrepareRaceOfSpecificType (numberOfCubes, raceType);
+        m_RaceLogic.StartRace ();
+        Assert.That (m_RaceLogic.State, Is.EqualTo (raceType));
         Card card = new Card (CupCardCubeColour.Grey, 1);
         Assert.That (m_RaceLogic.CanPlayCard (card), Is.False);
     }
 
     [Test]
     public void CanPlayCardReturnsFalseIfColourNotAvailable ([Values (1, 2, 3, 4)] int numberOfCubes,
-                                                             [Values (RaceState.Lowest, RaceState.Highest)] RaceState raceType)
+                                                             [Values (RaceState.Lowest, RaceState.Highest)] RaceState raceType,
+                                                             [Values (Player.Left, Player.Right)] Player currentPlayer)
     {
-        if (raceType == RaceState.Lowest) {
-            CreateHighestRace (numberOfCubes);
-        } else {
-            CreateLowestRace (numberOfCubes);
-        }
-        CompleteTestRace (numberOfCubes);
+        PrepareRaceOfSpecificType (numberOfCubes, raceType);
         m_Cubes = new CupCardCubeColour [4];
         m_Cubes [0] = CupCardCubeColour.Red;
         m_Cubes [1] = CupCardCubeColour.Blue;
@@ -339,8 +337,9 @@ public class RaceTest
         CurrentCubeIndex = 0;
         FinishRaceCallCount = 0;
         m_RaceLogic.StartRace ();
-        m_RaceLogic.PlayCard (Player.Left, new Card (CupCardCubeColour.Red, 1), Player.Left);
-        m_RaceLogic.PlayCard (Player.Right, new Card (CupCardCubeColour.Red, 2), Player.Left);
+        Assert.That (m_RaceLogic.State, Is.EqualTo (raceType));
+        m_RaceLogic.PlayCard (Player.Left, new Card (CupCardCubeColour.Red, 1), currentPlayer);
+        m_RaceLogic.PlayCard (Player.Right, new Card (CupCardCubeColour.Red, 2), currentPlayer);
         Assert.That (m_RaceLogic.CanPlayCard (new Card (CupCardCubeColour.Red, 3)), Is.False);
     }
 
@@ -348,12 +347,7 @@ public class RaceTest
     public void CanPlayCardReturnsTrueIfColourIsAvailable ([Values (1, 2, 3, 4)] int numberOfCubes,
                                                            [Values (RaceState.Lowest, RaceState.Highest)] RaceState raceType)
     {
-        if (raceType == RaceState.Lowest) {
-            CreateHighestRace (numberOfCubes);
-        } else {
-            CreateLowestRace (numberOfCubes);
-        }
-        CompleteTestRace (numberOfCubes);
+        PrepareRaceOfSpecificType (numberOfCubes, raceType);
         m_Cubes = new CupCardCubeColour [4];
         m_Cubes [0] = CupCardCubeColour.Red;
         m_Cubes [1] = CupCardCubeColour.Blue;
@@ -362,11 +356,77 @@ public class RaceTest
         CurrentCubeIndex = 0;
         FinishRaceCallCount = 0;
         m_RaceLogic.StartRace ();
+        Assert.That (m_RaceLogic.State, Is.EqualTo (raceType));
         Assert.That (m_RaceLogic.CanPlayCard (new Card (CupCardCubeColour.Red, 1)), Is.True);
     }
 
-    //TODO: PlayCard tests : false cases : do per side
-    // side is full
-    // colour not in race
-    // colour not available
+    [Test]
+    public void PlayCardReturnsFalseIfSideIsFull ([Values (1, 2, 3, 4)] int numberOfCubes,
+                                                  [Values (RaceState.Lowest, RaceState.Highest)] RaceState raceType,
+                                                  [Values (Player.Left, Player.Right)] Player side,
+                                                  [Values (Player.Left, Player.Right)] Player currentPlayer)
+    {
+        PrepareRaceOfSpecificType (numberOfCubes, raceType);
+        CurrentCubeIndex = 0;
+        FinishRaceCallCount = 0;
+        m_RaceLogic.StartRace ();
+        Assert.That (m_RaceLogic.State, Is.EqualTo (raceType));
+        for (int c = 0; c < numberOfCubes; ++c) {
+            Assert.That (m_RaceLogic.PlayCard (side, new Card (CupCardCubeColour.Red, c + 1), Player.Left), Is.True);
+        }
+        Assert.That (m_RaceLogic.PlayCard (side, new Card (CupCardCubeColour.Red, 13), Player.Left), Is.False);
+    }
+
+    [Test]
+    public void PlayCardReturnsFalseIfColourNotInRace ([Values (1, 2, 3, 4)] int numberOfCubes,
+                                                       [Values (RaceState.Lowest, RaceState.Highest)] RaceState raceType,
+                                                       [Values (Player.Left, Player.Right)] Player side,
+                                                       [Values (Player.Left, Player.Right)] Player currentPlayer)
+    {
+        PrepareRaceOfSpecificType (numberOfCubes, raceType);
+        CurrentCubeIndex = 0;
+        FinishRaceCallCount = 0;
+        m_RaceLogic.StartRace ();
+        Assert.That (m_RaceLogic.State, Is.EqualTo (raceType));
+        Assert.That (m_RaceLogic.PlayCard (side, new Card (CupCardCubeColour.Grey, 13), currentPlayer), Is.False);
+    }
+
+    [Test]
+    public void PlayCardReturnsFalseIfColourNotAvailable ([Values (1, 2, 3, 4)] int numberOfCubes,
+                                                          [Values (RaceState.Lowest, RaceState.Highest)] RaceState raceType,
+                                                          [Values (Player.Left, Player.Right)] Player side,
+                                                          [Values (Player.Left, Player.Right)] Player currentPlayer)
+    {
+        PrepareRaceOfSpecificType (numberOfCubes, raceType);
+        CurrentCubeIndex = 0;
+        FinishRaceCallCount = 0;
+        m_RaceLogic.StartRace ();
+        Assert.That (m_RaceLogic.State, Is.EqualTo (raceType));
+        for (int c = 0; c < numberOfCubes; ++c) {
+            Assert.That (m_RaceLogic.PlayCard (side, new Card (CupCardCubeColour.Red, c + 1), currentPlayer), Is.True);
+        }
+        Assert.That (m_RaceLogic.PlayCard (side, new Card (CupCardCubeColour.Red, 13), currentPlayer), Is.False);
+    }
+
+    [Test]
+    public void PlayCardReturnsTrueIfColourIsAvailable ([Values (1, 2, 3, 4)] int numberOfCubes,
+                                                        [Values (RaceState.Lowest, RaceState.Highest)] RaceState raceType,
+                                                        [Values (Player.Left, Player.Right)] Player side,
+                                                        [Values (Player.Left, Player.Right)] Player currentPlayer)
+    {
+        PrepareRaceOfSpecificType (numberOfCubes, raceType);
+        m_Cubes = new CupCardCubeColour [4];
+        m_Cubes [0] = CupCardCubeColour.Red;
+        m_Cubes [1] = CupCardCubeColour.Blue;
+        m_Cubes [2] = CupCardCubeColour.Green;
+        m_Cubes [3] = CupCardCubeColour.Yellow;
+        CurrentCubeIndex = 0;
+        FinishRaceCallCount = 0;
+        m_RaceLogic.StartRace ();
+        Assert.That (m_RaceLogic.State, Is.EqualTo (raceType));
+        for (int c = 0; c < numberOfCubes; ++c) {
+            Assert.That (m_RaceLogic.PlayCard (side, new Card (m_Cubes [c], 1), currentPlayer), Is.True);
+        }
+    }
+
 }
