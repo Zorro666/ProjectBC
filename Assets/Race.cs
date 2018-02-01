@@ -1,33 +1,33 @@
 ﻿using UnityEngine;
 using BC;
 
-public class Race : MonoBehaviour 
+public class Race : MonoBehaviour
 {
     RaceLogic m_raceLogic;
     RaceUI m_raceUI;
     GameLogic m_gameLogic;
 
-    void Awake()
+    void Awake ()
     {
-        m_raceLogic = new RaceLogic();
+        m_raceLogic = new RaceLogic ();
     }
 
-    void Start() 
-    {
-    }
-
-    void Update()
+    void Start ()
     {
     }
 
-    public void Initialise(GameLogic gameLogic)
+    void Update ()
+    {
+    }
+
+    public void Initialise (GameLogic gameLogic)
     {
         m_gameLogic = gameLogic;
-        m_raceUI = GetComponent<RaceUI>();
+        m_raceUI = GetComponent<RaceUI> ();
         if (m_raceUI == null)
-            Debug.LogError("m_raceUI is NULL");
-        m_raceUI.Initialise(gameLogic);
-        m_raceLogic.Initialise(m_raceUI.NumberOfCubes, m_raceUI,
+            Debug.LogError ("m_raceUI is NULL");
+        m_raceUI.Initialise (gameLogic);
+        m_raceLogic.Initialise (m_raceUI.NumberOfCubes, m_raceUI,
                                m_gameLogic.GetCubesRemainingCount,
                                m_gameLogic.NextCube,
                                m_gameLogic.AddCubeToPlayer,
@@ -35,33 +35,33 @@ public class Race : MonoBehaviour
                                m_gameLogic.FinishRace);
     }
 
-    public void ResetPlayCardButtons()
+    public void ResetPlayCardButtons ()
     {
-        m_raceLogic.ResetPlayCardButtons();
+        m_raceLogic.ResetPlayCardButtons ();
     }
 
-    public void SetPlayCardButtons(Card card)
+    public void SetPlayCardButtons (Card card)
     {
-        m_raceLogic.SetPlayCardButtons(card);
+        m_raceLogic.SetPlayCardButtons (card);
     }
 
-    public void StartRace()
+    public void StartRace ()
     {
-        m_raceLogic.StartRace();
+        m_raceLogic.StartRace ();
     }
 
-    public bool CanPlayCard(Card card)
+    public bool CanPlayCard (Card card)
     {
-        return m_raceLogic.CanPlayCard(card);
+        return m_raceLogic.CanPlayCard (card);
     }
 
-    public void NewGame() 
+    public void NewGame ()
     {
-        m_raceLogic.NewGame();
+        m_raceLogic.NewGame ();
     }
 
-    public bool PlayCard(Player player, Card card, Player currentPlayer)
+    public bool PlayCard (Player player, Card card, Player currentPlayer)
     {
-        return m_raceLogic.PlayCard(player, card, currentPlayer);
+        return m_raceLogic.PlayCard (player, card, currentPlayer);
     }
 }
