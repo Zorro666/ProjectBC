@@ -101,6 +101,11 @@ public class GameUI : MonoBehaviour
         m_playerGenericButtons [playerIndex].SetActive (true);
     }
 
+    public bool IsPlayerGenericButtonActive (int playerIndex)
+    {
+        return m_playerGenericButtons [playerIndex].activeSelf;
+    }
+
     public void HidePlayerGenericButtons ()
     {
         for (var p = 0; p < GameLogic.PlayerCount; ++p)

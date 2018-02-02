@@ -162,8 +162,13 @@ public class GameLogic : MonoBehaviour
             Debug.LogError ("Invalid cardNumber " + cardNumber);
             return;
         }
+        CurrentPlayerSelectCardFromHand (cardNumber - 1);
+    }
+
+    void CurrentPlayerSelectCardFromHand (int cardNumber)
+    {
         var oldChosenCardIndex = m_chosenHandCards [0];
-        var newChosenCardIndex = cardNumber - 1;
+        var newChosenCardIndex = cardNumber;
         // Deselect card if already selected
         for (var i = 0; i < m_maxNumCardsToSelectFromHand; ++i) {
             if ((m_chosenHandCards [i] >= 0) && (m_chosenHandCards [i] == newChosenCardIndex)) {
@@ -259,18 +264,26 @@ public class GameLogic : MonoBehaviour
             return;
         }
 
-        var playerIndex = (int)m_currentPlayer;
-        var cardIndex = m_chosenHandCards [0];
-        if ((cardIndex < 0) || (cardIndex >= GameLogic.HandSize)) {
-            Debug.LogError ("PlayCard invalid cardIndex " + cardIndex);
-            return;
-        }
-        var card = m_playerHands [playerIndex, cardIndex];
-        bool validCard = m_races [raceNumber - 1].PlayCard (side, card, m_currentPlayer);
+        Race race = m_races [raceNumber - 1];
+        bool validCard = PlaySelectedCardOnARace (side, race);
         if (!validCard) {
             m_gameUI.SetStatusText ("Wrong Race. Please choose a different Race");
             return;
         }
+    }
+
+    bool PlaySelectedCardOnARace (Player side, Race race)
+    {
+        var playerIndex = (int)m_currentPlayer;
+        var cardIndex = m_chosenHandCards [0];
+        if ((cardIndex < 0) || (cardIndex >= GameLogic.HandSize)) {
+            Debug.LogError ("PlaySelectedCardOnARace invalid cardIndex " + cardIndex);
+            return false;
+        }
+        var card = m_playerHands [playerIndex, cardIndex];
+        bool validCard = race.PlayCard (side, card, m_currentPlayer);
+        if (!validCard)
+            return false;
 
         HideHands ();
         ResetChosenHandCards ();
@@ -281,6 +294,7 @@ public class GameLogic : MonoBehaviour
         if (m_finishedRace == null) {
             EndPlayerTurn ();
         }
+        return true;
     }
 
     public void ClaimCupButtonClicked (GameObject source)
@@ -539,10 +553,10 @@ public class GameLogic : MonoBehaviour
             for (var cubeType = 0; cubeType < GameLogic.CubeTypeCount; ++cubeType) {
                 m_gameUI.SetPlayerCubeCountColour (player, cubeType, GetCardCubeColour ((CupCardCubeColour)cubeType));
                 m_playerCubeCounts [player, cubeType] = 0;
+                m_playerCups [player, cubeType] = false;
             }
             for (var cupIndex = 0; cupIndex < GameLogic.MaxCupsPerPlayer; ++cupIndex) {
                 m_gameUI.SetPlayerCupActive (player, cupIndex, false);
-                m_playerCups [player, cupIndex] = false;
             }
             m_playerWildcardCubeCounts [player] = 0;
         }
@@ -564,6 +578,11 @@ public class GameLogic : MonoBehaviour
         if (IsCupWon (cupColour)) {
             Debug.LogError ("Cup has already been won " + cupColour + " by " + m_cupOwner [cupIndex]);
         }
+        if (m_playerCups [playerIndex, cupIndex])
+            Debug.LogError ("Player:" + player + " already won cup: " + cupColour);
+        if (m_cupOwner [cupIndex] != Player.Unknown)
+            Debug.LogError ("Cup:" + cupColour + " already owned by " + m_cupOwner [cupIndex]);
+
         m_playerCups [playerIndex, cupIndex] = true;
         m_cupOwner [cupIndex] = player;
 
@@ -1074,12 +1093,79 @@ public class GameLogic : MonoBehaviour
         TakeRobotTurn ();
     }
 
+    void RobotPickCardFromHand ()
+    {
+        // Dumb robot play the first card it can
+        var playerIndex = (int)m_currentPlayer;
+        for (int c = 0; c < GameLogic.HandSize; ++c) {
+            Card card = m_playerHands [playerIndex, c];
+            foreach (var race in m_races) {
+                if (race.CanPlayCard (card)) {
+                    CurrentPlayerSelectCardFromHand (c);
+                    Debug.Log ("Robot Chooses " + card);
+                    return;
+                }
+            }
+        }
+    }
+
+    void RobotPlayCardOnRace ()
+    {
+        // Dumb robot play the chosen card on the first race and side it can
+        var playerIndex = (int)m_currentPlayer;
+        Card card = m_playerHands [playerIndex, m_chosenHandCards [0]];
+        foreach (var race in m_races) {
+            if (race.CanPlayCard (card)) {
+                for (int sideIndex = 0; sideIndex < GameLogic.PlayerCount; ++sideIndex) {
+                    Player side = (Player)sideIndex;
+                    if (PlaySelectedCardOnARace (side, race)) {
+                        Debug.Log ("Robot Plays Card : " + card.Colour + " " + card.Value + " on Race:" + race.name + " Side:" + side);
+                        return;
+                    }
+                }
+            }
+        }
+    }
+
+    void RobotPickCardsToDiscard ()
+    {
+        // Dumb robot choose 4 cards randomly
+        for (int c = 0; c < 4; ++c) {
+            var cardNumber = m_random.Next (0, 8);
+            CurrentPlayerSelectCardFromHand (cardNumber);
+        }
+    }
+
+    void RobotPressGenericButton ()
+    {
+        if (m_gameUI.IsPlayerGenericButtonActive ((int)m_currentPlayer))
+            PlayerGenericButtonClicked ();
+    }
+
     void TakeRobotTurn ()
     {
         if (!RobotActive)
             return;
         switch (m_turnState) {
         case TurnState.StartingPlayerTurn:
+            RobotPressGenericButton ();
+            break;
+        case TurnState.PickCardFromHand:
+            RobotPickCardFromHand ();
+            break;
+        case TurnState.PickCardsFromHandToDiscard:
+            RobotPickCardsToDiscard ();
+            RobotPressGenericButton ();
+            break;
+        case TurnState.PlayCardOnRace:
+            RobotPlayCardOnRace ();
+            break;
+        case TurnState.FinishingRace:
+            RobotPressGenericButton ();
+            break;
+        case TurnState.FinishingGame:
+            break;
+        case TurnState.EndingPlayerTurn:
             PlayerGenericButtonClicked ();
             break;
         }
