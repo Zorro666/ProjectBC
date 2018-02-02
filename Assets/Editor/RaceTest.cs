@@ -428,5 +428,4 @@ public class RaceTest
             Assert.That (m_RaceLogic.PlayCard (side, new Card (m_Cubes [c], 1), currentPlayer), Is.True);
         }
     }
-
 }
