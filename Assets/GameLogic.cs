@@ -1071,5 +1071,17 @@ public class GameLogic : MonoBehaviour
             EndGame ();
             break;
         }
+        TakeRobotTurn ();
+    }
+
+    void TakeRobotTurn ()
+    {
+        if (!RobotActive)
+            return;
+        switch (m_turnState) {
+        case TurnState.StartingPlayerTurn:
+            PlayerGenericButtonClicked ();
+            break;
+        }
     }
 }
