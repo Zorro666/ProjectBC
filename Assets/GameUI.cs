@@ -8,6 +8,8 @@ public class GameUI : MonoBehaviour
 
     GameObject [] m_unclaimedCupGOs;
     Button [] m_unclaimedCupButtons;
+    Button m_robotButton;
+    Text m_robotButtonText;
 
     //TODO: make a Player class and store this data per Player
     Text [,] m_playerCubeCountsTexts;
@@ -20,6 +22,11 @@ public class GameUI : MonoBehaviour
     Image [,] m_playerCupImages;
     Text [,] m_playerCupValues;
     GameObject [] m_playerGenericButtons;
+
+    public void SetRobotButtonText (string text)
+    {
+        m_robotButtonText.text = text;
+    }
 
     public void SetStatusText (string text)
     {
@@ -213,6 +220,21 @@ public class GameUI : MonoBehaviour
             if (m_playerWildcardCubeCountTexts [player] == null)
                 Debug.LogError ("Can't find wildcard cube count UI Text Component");
         }
+        var robotButtonName = gameBoardUIRootName + "LeftPlayer/Robot";
+        var robotButtonGO = GameObject.Find (robotButtonName);
+        if (robotButtonGO == null)
+            Debug.LogError ("Can't find Robot Button GO " + robotButtonName);
+        m_robotButton = robotButtonGO.GetComponent<Button> ();
+        if (m_robotButton == null)
+            Debug.LogError ("Can't find Robot Button Component");
+        var robotButtonTextName = gameBoardUIRootName + "LeftPlayer/Robot/Text";
+        var robotButtonTextGO = GameObject.Find (robotButtonTextName);
+        if (robotButtonTextGO == null)
+            Debug.LogError ("Can't find Robot button Text GO " + robotButtonTextName);
+        m_robotButtonText = robotButtonTextGO.GetComponent<Text> ();
+        if (m_robotButtonText == null)
+            Debug.LogError ("Can't find Robot button Text Component");
+
         if (!Validate ())
             Debug.LogError ("Validation failed!");
     }
@@ -283,6 +305,11 @@ public class GameUI : MonoBehaviour
                 }
             }
         }
+        if (m_robotButton == null)
+            Debug.LogError ("m_robotButton is null");
+        if (m_robotButtonText == null)
+            Debug.LogError ("m_robotButtonText is null");
+
         return true;
     }
 }

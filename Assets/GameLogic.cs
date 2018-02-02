@@ -27,6 +27,8 @@ public class GameLogic : MonoBehaviour
         EndingPlayerTurn
     }
 
+    public bool RobotActive { get; private set; }
+
     System.Random m_random;
     CupCardCubeColour [] m_cubes;
     Color [] m_cardCubeColours;
@@ -105,6 +107,12 @@ public class GameLogic : MonoBehaviour
         m_finishedRace = race;
         m_lastRaceWinner = race.Winner;
         m_frame = 0;
+        UpdateStatus ();
+    }
+
+    public void OnRobotButtonPressed ()
+    {
+        RobotActive = !RobotActive;
         UpdateStatus ();
     }
 
@@ -775,6 +783,10 @@ public class GameLogic : MonoBehaviour
             break;
 
         }
+        if (RobotActive)
+            m_gameUI.SetRobotButtonText ("Robot");
+        else
+            m_gameUI.SetRobotButtonText ("Human");
     }
 
     void CreateFullDeck ()
