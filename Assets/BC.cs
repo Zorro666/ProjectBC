@@ -7,15 +7,16 @@
         Green,
         Yellow,
         Red,
-        Count = Red + 1
+        Count = Red + 1,
+        Invalid
     }
 
     public enum Player
     {
-        Unknown = -1,
         Left = 0,
         Right,
-        Count = Right + 1
+        Count = Right + 1,
+        Unknown
     }
 
     public enum RaceState

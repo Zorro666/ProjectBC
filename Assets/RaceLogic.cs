@@ -19,10 +19,16 @@ public class RaceLogic
     int [] m_cardsPlayed;
     int [,] m_cardsRemaining;
     RaceUI m_raceUI;
+    CupCardCubeColour [] m_cubes;
 
     public RaceState State { get; private set; }
     public int NumberOfCubes { get; private set; }
     public Player Winner { get; private set; }
+
+    public CupCardCubeColour GetCube (int i)
+    {
+        return m_cubes [i];
+    }
 
     public bool CanPlayCard (Card card)
     {
@@ -92,11 +98,15 @@ public class RaceLogic
             if (m_raceUI) {
                 m_raceUI.SetFinished ();
             }
+            for (var i = 0; i < NumberOfCubes; i++) {
+                m_cubes [i] = CupCardCubeColour.Invalid;
+            }
             return;
         }
 
         for (var i = 0; i < NumberOfCubes; i++) {
             var cubeColour = m_NextCube ();
+            m_cubes [i] = cubeColour;
             var colour = (int)cubeColour;
             if (m_raceUI) {
                 m_raceUI.SetCube (i, cubeColour);
@@ -194,6 +204,7 @@ public class RaceLogic
         m_cards = new Card [GameLogic.PlayerCount, NumberOfCubes];
         m_cardsPlayed = new int [GameLogic.PlayerCount];
         m_cardsRemaining = new int [GameLogic.PlayerCount, GameLogic.CubeTypeCount];
+        m_cubes = new CupCardCubeColour [NumberOfCubes];
     }
 
     public void NewGame ()

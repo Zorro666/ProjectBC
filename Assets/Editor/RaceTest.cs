@@ -144,8 +144,7 @@ public class RaceTest
         m_RaceLogic.NewGame ();
         if ((numberOfCubes % 2) == 0) {
             CompleteTestRace (numberOfCubes);
-            FinishRaceCallCount = 0;
-            m_RaceLogic.StartRace ();
+            StartRace ();
         }
     }
 
@@ -156,8 +155,7 @@ public class RaceTest
         m_RaceLogic.NewGame ();
         if ((numberOfCubes % 2) == 1) {
             CompleteTestRace (numberOfCubes);
-            FinishRaceCallCount = 0;
-            m_RaceLogic.StartRace ();
+            StartRace ();
         }
     }
 
@@ -171,10 +169,15 @@ public class RaceTest
         m_Cubes [1] = CupCardCubeColour.Blue;
         m_Cubes [2] = CupCardCubeColour.Green;
         m_Cubes [3] = CupCardCubeColour.Yellow;
+        StartRace ();
+        Assert.That (m_RaceLogic.State, Is.EqualTo (raceType));
+    }
+
+    void StartRace ()
+    {
         CurrentCubeIndex = 0;
         FinishRaceCallCount = 0;
         m_RaceLogic.StartRace ();
-        Assert.That (m_RaceLogic.State, Is.EqualTo (raceType));
     }
 
     [Test]
@@ -214,7 +217,7 @@ public class RaceTest
     {
         NumCubesInBag = 0;
         CreateRace (numberOfCubes);
-        m_RaceLogic.StartRace ();
+        StartRace ();
         Assert.That (m_RaceLogic.State, Is.EqualTo (RaceState.Finished));
     }
 
@@ -241,7 +244,7 @@ public class RaceTest
         FinishRaceCallCount = 0;
         startingState = expectedState;
         expectedState = ToggleState (startingState);
-        m_RaceLogic.StartRace ();
+        StartRace ();
         Assert.That (m_RaceLogic.State, Is.EqualTo (startingState));
         CompleteTestRace (numberOfCubes);
         Assert.That (FinishRaceCallCount, Is.EqualTo (1), "Finish Race was not called once");
@@ -317,7 +320,7 @@ public class RaceTest
                                                           [Values (RaceState.Lowest, RaceState.Highest)] RaceState raceType)
     {
         PrepareRaceOfSpecificType (numberOfCubes, raceType);
-        m_RaceLogic.StartRace ();
+        StartRace ();
         Assert.That (m_RaceLogic.State, Is.EqualTo (raceType));
         Card card = new Card (CupCardCubeColour.Grey, 1);
         Assert.That (m_RaceLogic.CanPlayCard (card), Is.False);
@@ -334,9 +337,7 @@ public class RaceTest
         m_Cubes [1] = CupCardCubeColour.Blue;
         m_Cubes [2] = CupCardCubeColour.Green;
         m_Cubes [3] = CupCardCubeColour.Yellow;
-        CurrentCubeIndex = 0;
-        FinishRaceCallCount = 0;
-        m_RaceLogic.StartRace ();
+        StartRace ();
         Assert.That (m_RaceLogic.State, Is.EqualTo (raceType));
         m_RaceLogic.PlayCard (Player.Left, new Card (CupCardCubeColour.Red, 1), currentPlayer);
         m_RaceLogic.PlayCard (Player.Right, new Card (CupCardCubeColour.Red, 2), currentPlayer);
@@ -353,9 +354,7 @@ public class RaceTest
         m_Cubes [1] = CupCardCubeColour.Blue;
         m_Cubes [2] = CupCardCubeColour.Green;
         m_Cubes [3] = CupCardCubeColour.Yellow;
-        CurrentCubeIndex = 0;
-        FinishRaceCallCount = 0;
-        m_RaceLogic.StartRace ();
+        StartRace ();
         Assert.That (m_RaceLogic.State, Is.EqualTo (raceType));
         Assert.That (m_RaceLogic.CanPlayCard (new Card (CupCardCubeColour.Red, 1)), Is.True);
     }
@@ -367,9 +366,7 @@ public class RaceTest
                                                   [Values (Player.Left, Player.Right)] Player currentPlayer)
     {
         PrepareRaceOfSpecificType (numberOfCubes, raceType);
-        CurrentCubeIndex = 0;
-        FinishRaceCallCount = 0;
-        m_RaceLogic.StartRace ();
+        StartRace ();
         Assert.That (m_RaceLogic.State, Is.EqualTo (raceType));
         for (int c = 0; c < numberOfCubes; ++c) {
             Assert.That (m_RaceLogic.PlayCard (side, new Card (CupCardCubeColour.Red, c + 1), Player.Left), Is.True);
@@ -384,9 +381,7 @@ public class RaceTest
                                                        [Values (Player.Left, Player.Right)] Player currentPlayer)
     {
         PrepareRaceOfSpecificType (numberOfCubes, raceType);
-        CurrentCubeIndex = 0;
-        FinishRaceCallCount = 0;
-        m_RaceLogic.StartRace ();
+        StartRace ();
         Assert.That (m_RaceLogic.State, Is.EqualTo (raceType));
         Assert.That (m_RaceLogic.PlayCard (side, new Card (CupCardCubeColour.Grey, 13), currentPlayer), Is.False);
     }
@@ -398,9 +393,7 @@ public class RaceTest
                                                           [Values (Player.Left, Player.Right)] Player currentPlayer)
     {
         PrepareRaceOfSpecificType (numberOfCubes, raceType);
-        CurrentCubeIndex = 0;
-        FinishRaceCallCount = 0;
-        m_RaceLogic.StartRace ();
+        StartRace ();
         Assert.That (m_RaceLogic.State, Is.EqualTo (raceType));
         for (int c = 0; c < numberOfCubes; ++c) {
             Assert.That (m_RaceLogic.PlayCard (side, new Card (CupCardCubeColour.Red, c + 1), currentPlayer), Is.True);
@@ -420,12 +413,39 @@ public class RaceTest
         m_Cubes [1] = CupCardCubeColour.Blue;
         m_Cubes [2] = CupCardCubeColour.Green;
         m_Cubes [3] = CupCardCubeColour.Yellow;
-        CurrentCubeIndex = 0;
-        FinishRaceCallCount = 0;
-        m_RaceLogic.StartRace ();
+        StartRace ();
         Assert.That (m_RaceLogic.State, Is.EqualTo (raceType));
         for (int c = 0; c < numberOfCubes; ++c) {
             Assert.That (m_RaceLogic.PlayCard (side, new Card (m_Cubes [c], 1), currentPlayer), Is.True);
+        }
+    }
+
+    [Test]
+    public void GetCubeReturnsCubesAddedToRace ([Values (1, 2, 3, 4)] int numberOfCubes,
+                                               [Values (RaceState.Lowest, RaceState.Highest)] RaceState raceType)
+    {
+        PrepareRaceOfSpecificType (numberOfCubes, raceType);
+        m_Cubes = new CupCardCubeColour [4];
+        m_Cubes [0] = CupCardCubeColour.Red;
+        m_Cubes [1] = CupCardCubeColour.Blue;
+        m_Cubes [2] = CupCardCubeColour.Green;
+        m_Cubes [3] = CupCardCubeColour.Yellow;
+        StartRace ();
+        Assert.That (m_RaceLogic.State, Is.EqualTo (raceType));
+        for (int c = 0; c < numberOfCubes; ++c) {
+            Assert.That (m_RaceLogic.GetCube (c), Is.EqualTo (m_Cubes [c]));
+        }
+    }
+
+    [Test]
+    public void GetCubeReturnsInvalidIfRaceIsFinished ([Values (1, 2, 3, 4)] int numberOfCubes)
+    {
+        NumCubesInBag = 0;
+        CreateRace (numberOfCubes);
+        StartRace ();
+        Assert.That (m_RaceLogic.State, Is.EqualTo (RaceState.Finished));
+        for (int c = 0; c < numberOfCubes; ++c) {
+            Assert.That (m_RaceLogic.GetCube (c), Is.EqualTo (CupCardCubeColour.Invalid));
         }
     }
 }
