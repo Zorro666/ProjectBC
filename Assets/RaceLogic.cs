@@ -24,6 +24,10 @@ public class RaceLogic
     public RaceState State { get; private set; }
     public int NumberOfCubes { get; private set; }
     public Player Winner { get; private set; }
+    public Card GetPlayedCard (Player side, int i)
+    {
+        return m_cards [(int)side, i];
+    }
 
     public CupCardCubeColour GetCube (int i)
     {
@@ -242,7 +246,6 @@ public class RaceLogic
             m_raceUI.SetPlayCardButtonInteractable (sideIndex, cardIndex, false);
         }
         m_cards [sideIndex, cardIndex] = card;
-        //Debug.Log(m_cards[sideIndex, cardIndex].Value);
 
         bool raceFinished = true;
         foreach (var cardsPlayed in m_cardsPlayed) {

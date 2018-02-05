@@ -76,4 +76,9 @@ public class Race : MonoBehaviour
     {
         return m_raceLogic.GetCube (i);
     }
+
+    public Card GetPlayedCard (Player side, int i)
+    {
+        return m_raceLogic.GetPlayedCard (side, i);
+    }
 }
