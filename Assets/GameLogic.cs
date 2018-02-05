@@ -980,6 +980,7 @@ public class GameLogic : MonoBehaviour
         m_playerCups = new bool [GameLogic.PlayerCount, GameLogic.CubeTypeCount];
 
         m_cupOwner = new Player [GameLogic.CubeTypeCount];
+
     }
 
     void Start ()
@@ -989,16 +990,96 @@ public class GameLogic : MonoBehaviour
     bool Validate ()
     {
         bool allOk = true;
-        //TODO:allOk &= ValidateCards();
+        allOk &= ValidateCards ();
         allOk &= ValidateCups ();
         allOk &= ValidateCubes ();
         return allOk;
     }
 
+    bool CheckCard (int maxCardValue, Card card, int [,] cardCounts)
+    {
+        var cubeType = (int)card.Colour;
+        var v = card.Value;
+        if ((v < 0) || (v > maxCardValue)) {
+            Debug.LogError ("Invalid card value:" + v);
+            return false;
+        }
+        if (cardCounts [cubeType, v] != 1)
+            return false;
+        cardCounts [cubeType, v] -= 1;
+        return true;
+    }
+
     bool ValidateCards ()
     {
-        //TODO: Verify every card is in draw deck or discard deck or player hand or played on a race
-        return false;
+        int maxCardValue = 13 + 1; // 1-based index 1 -> 13
+        int [,] cardCounts = new int [GameLogic.CubeTypeCount, maxCardValue];
+        for (int cubeType = 0; cubeType < GameLogic.CubeTypeCount; ++cubeType) {
+            for (int v = 0; v < maxCardValue; ++v)
+                cardCounts [cubeType, v] = 0;
+        }
+
+        // Set the starting cards count to 1
+        foreach (var card in m_fullDeck)
+            cardCounts [(int)card.Colour, card.Value] = 1;
+
+        // Verify every card is in draw deck or discard deck or player hand or played on a race
+        // Draw deck
+        foreach (var card in m_drawDeck) {
+            if (!CheckCard (maxCardValue, card, cardCounts)) {
+                Debug.LogError ("Draw deck card already used:" + card.Colour + " " + card.Value);
+                return false;
+            }
+        }
+
+        // Discard deck
+        foreach (var card in m_discardDeck) {
+            if (!CheckCard (maxCardValue, card, cardCounts)) {
+                Debug.LogError ("Discard deck card already used:" + card.Colour + " " + card.Value);
+                return false;
+            }
+        }
+
+        // Player hands
+        for (int playerIndex = 0; playerIndex < GameLogic.PlayerCount; ++playerIndex) {
+            for (int c = 0; c < GameLogic.HandSize; ++c) {
+                Card card = m_playerHands [playerIndex, c];
+                if (!CheckCard (maxCardValue, card, cardCounts)) {
+                    Debug.LogError ("Player: " + (Player)playerIndex + " hand card already used:" +
+                                    card.Colour + " " + card.Value);
+                    return false;
+                }
+            }
+        }
+
+        // Cards played on a race
+        foreach (var race in m_races) {
+            for (int side = 0; side < GameLogic.PlayerCount; ++side) {
+                for (int c = 0; c < race.NumberOfCubes; ++c) {
+                    Card card = race.GetPlayedCard ((Player)side, c);
+                    if (card != null) {
+                        if (!CheckCard (maxCardValue, card, cardCounts)) {
+                            Debug.LogError ("Race: " + race.name +
+                                            " Side: " + (Player)side + " card already used:" +
+                                            card.Colour + " " + card.Value);
+                            return false;
+                        }
+                    }
+                }
+            }
+        }
+
+        for (int cubeType = 0; cubeType < GameLogic.CubeTypeCount; ++cubeType) {
+            for (int v = 0; v < maxCardValue; ++v) {
+                if (cardCounts [cubeType, v] != 0) {
+                    Debug.LogError ("Card Validation failed invalid card count: " +
+                                    cardCounts [cubeType, v] + " " +
+                                    (CupCardCubeColour)cubeType + " " + v);
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     bool ValidateCups ()
@@ -1111,7 +1192,7 @@ public class GameLogic : MonoBehaviour
             }
         }
 
-        //TODO: validate player cube counts and cups won and cubes remaining and wildcards
+        //TODO: validate cubes used to win cups : it might not be 5 greens
         return allOk;
     }
 
