@@ -38,7 +38,6 @@ public class GameLogic : MonoBehaviour
     GameState m_state;
     TurnState m_turnState;
     Race [] m_races;
-    int m_frame;
     int m_cubesRemainingCount;
     int m_cubesTotalCount;
     int m_chosenHandCardCount;
@@ -56,7 +55,7 @@ public class GameLogic : MonoBehaviour
 
     //TODO: make a Player class and store this data per Player
     int [,] m_playerCubeCounts;
-    int [] m_playerWildcardCubeCounts;
+    int [,] m_playerWildcardCubeCounts;
     bool [,] m_playerCups;
     Card [,] m_playerHands;
 
@@ -106,7 +105,6 @@ public class GameLogic : MonoBehaviour
         m_turnState = TurnState.FinishingRace;
         m_finishedRace = race;
         m_lastRaceWinner = race.Winner;
-        m_frame = 0;
         UpdateStatus ();
     }
 
@@ -321,14 +319,26 @@ public class GameLogic : MonoBehaviour
             Debug.LogError ("ClaimCup:" + cupName + " don't need wildcards to win");
             return;
         }
-        if ((m_playerCubeCounts [playerIndex, cupIndex] + m_playerWildcardCubeCounts [playerIndex]) < cubeCountToWin) {
+        int playerTotalWildcardCubeCount = GetPlayerWildcardCubeCount (m_currentPlayer);
+        if ((m_playerCubeCounts [playerIndex, cupIndex] + playerTotalWildcardCubeCount) < cubeCountToWin) {
             Debug.LogError ("ClaimCup:" + cupName + " can't win the cup");
             return;
         }
         var numWildCardsNeeded = cubeCountToWin - m_playerCubeCounts [playerIndex, cupIndex];
         AwardCupToPlayer (m_currentPlayer, cupType);
         m_playerCubeCounts [playerIndex, cupIndex] = 0;
-        m_playerWildcardCubeCounts [playerIndex] -= numWildCardsNeeded;
+        for (int cubeType = 0; cubeType < GameLogic.CubeTypeCount; ++cubeType) {
+            var wildcardCount = m_playerWildcardCubeCounts [playerIndex, cubeType];
+            if (wildcardCount >= numWildCardsNeeded) {
+                m_playerWildcardCubeCounts [playerIndex, cubeType] -= numWildCardsNeeded;
+                numWildCardsNeeded -= wildcardCount;
+            }
+            if (numWildCardsNeeded <= 0)
+                break;
+        }
+        if (numWildCardsNeeded > 0) {
+            Debug.LogError ("ClaimCup:" + cupName + " invalid numWildCardsNeeded:" + numWildCardsNeeded);
+        }
         UpdateCubeCounts ();
         ComputeHasGameEnded ();
     }
@@ -337,6 +347,17 @@ public class GameLogic : MonoBehaviour
         get { return m_cubesTotalCount; }
         set { m_cubesTotalCount = value; }
     }
+
+    int GetPlayerWildcardCubeCount (Player player)
+    {
+        var playerIndex = (int)player;
+        int playerTotalWildcardCubeCount = 0;
+        for (int cubeType = 0; cubeType < GameLogic.CubeTypeCount; ++cubeType) {
+            playerTotalWildcardCubeCount += m_playerWildcardCubeCounts [playerIndex, cubeType];
+        }
+        return playerTotalWildcardCubeCount;
+    }
+
 
     void PlayerDrawNewCard (Player player, int cardIndex)
     {
@@ -364,7 +385,6 @@ public class GameLogic : MonoBehaviour
         if (ComputeHasGameEnded ())
             return;
 
-        m_frame = 0;
         m_state = GameState.InGame;
         m_finishedRace.StartRace ();
         m_finishedRace = null;
@@ -541,7 +561,6 @@ public class GameLogic : MonoBehaviour
         ShuffleCubes ();
         foreach (var race in m_races)
             race.NewGame ();
-        m_frame = 0;
         m_finishedRace = null;
         m_lastRaceWinner = Player.Unknown;
         ResetChosenHandCards ();
@@ -554,11 +573,11 @@ public class GameLogic : MonoBehaviour
                 m_gameUI.SetPlayerCubeCountColour (player, cubeType, GetCardCubeColour ((CupCardCubeColour)cubeType));
                 m_playerCubeCounts [player, cubeType] = 0;
                 m_playerCups [player, cubeType] = false;
+                m_playerWildcardCubeCounts [player, cubeType] = 0;
             }
             for (var cupIndex = 0; cupIndex < GameLogic.MaxCupsPerPlayer; ++cupIndex) {
                 m_gameUI.SetPlayerCupActive (player, cupIndex, false);
             }
-            m_playerWildcardCubeCounts [player] = 0;
         }
         UpdateCubeCounts ();
         for (var cupType = 0; cupType < GameLogic.CubeTypeCount; ++cupType)
@@ -624,7 +643,7 @@ public class GameLogic : MonoBehaviour
 
         ResetUnclaimedCups ();
         var playerIndex = (int)m_currentPlayer;
-        var wildcardCount = m_playerWildcardCubeCounts [playerIndex];
+        var wildcardCount = GetPlayerWildcardCubeCount (m_currentPlayer);
         for (var cubeIndex = 0; cubeIndex < GameLogic.CubeTypeCount; ++cubeIndex) {
             if (!IsCupWon ((CupCardCubeColour)cubeIndex)) {
                 var cubeValue = m_playerCubeCounts [playerIndex, cubeIndex];
@@ -658,7 +677,7 @@ public class GameLogic : MonoBehaviour
             if (IsCupWon (cubeType)) {
                 var cubeValue = m_playerCubeCounts [playerIndex, cubeIndex];
                 var numWildcardCubes = cubeValue / 3;
-                m_playerWildcardCubeCounts [playerIndex] += numWildcardCubes;
+                m_playerWildcardCubeCounts [playerIndex, (int)cubeType] += numWildcardCubes;
                 cubeValue -= (numWildcardCubes * 3);
                 m_playerCubeCounts [playerIndex, cubeIndex] = cubeValue;
             }
@@ -672,26 +691,30 @@ public class GameLogic : MonoBehaviour
             var cubeValue = m_playerCubeCounts [playerIndex, cubeIndex];
             m_gameUI.SetPlayerCubeCountValue (playerIndex, cubeIndex, cubeValue);
         }
-        var wildcardCubeCount = m_playerWildcardCubeCounts [playerIndex];
+        var wildcardCubeCount = GetPlayerWildcardCubeCount (player);
         m_gameUI.SetPlayerWildcardCubeCountValue (playerIndex, wildcardCubeCount);
     }
 
     void InGame ()
     {
+        bool allowValidate = true;
         switch (m_turnState) {
         case TurnState.FinishingRace:
             FinishingRace ();
+            // Can't validate here as the state is finalised i.e. player has cubes that belong to a race
+            allowValidate = false;
             break;
         case TurnState.FinishingGame:
             FinishingGame ();
+            // Can't validate here as the state is finalised i.e. player has cubes that belong to a race
+            allowValidate = false;
             break;
         }
-        ++m_frame;
-        if (m_frame == 30) {
-            m_frame = 0;
-        }
-        if (!Validate ())
+        if (allowValidate && !Validate ()) {
             Debug.LogError ("Validation failed!");
+            RobotActive = false;
+            UpdateStatus ();
+        }
     }
 
     void EndGame ()
@@ -702,25 +725,18 @@ public class GameLogic : MonoBehaviour
 
     void FinishingRace ()
     {
-        ++m_frame;
         SetPlayerGenericButtonText ("Continue");
         ShowPlayerGenericButton ();
     }
 
     void FinishingGame ()
     {
-        ++m_frame;
         SetPlayerGenericButtonText ("Continue");
         ShowPlayerGenericButton ();
     }
 
     void StartPlayerTurn ()
     {
-        //DEBUG:DEBUG
-        //m_playerWildcardCubeCounts[(int)m_currentPlayer] += m_random.Next(-1, 2);
-        //if (m_playerWildcardCubeCounts[(int)m_currentPlayer] < 0)
-        //m_playerWildcardCubeCounts[(int)m_currentPlayer] = 0;
-        //DEBUG:DEBUG
         UpdateCubeCounts ();
 
         m_maxNumCardsToSelectFromHand = 1;
@@ -959,7 +975,7 @@ public class GameLogic : MonoBehaviour
         m_chosenHandCards = new int [4];
 
         m_playerCubeCounts = new int [GameLogic.PlayerCount, GameLogic.CubeTypeCount];
-        m_playerWildcardCubeCounts = new int [GameLogic.PlayerCount];
+        m_playerWildcardCubeCounts = new int [GameLogic.PlayerCount, GameLogic.CubeTypeCount];
         m_playerHands = new Card [GameLogic.PlayerCount, GameLogic.HandSize];
         m_playerCups = new bool [GameLogic.PlayerCount, GameLogic.CubeTypeCount];
 
@@ -1001,6 +1017,31 @@ public class GameLogic : MonoBehaviour
         return allOk;
     }
 
+    bool UpdateCubeCounts (CupCardCubeColour cube, int [] cubeCounts)
+    {
+        switch (cube) {
+        case CupCardCubeColour.Grey:
+            cubeCounts [(int)cube]++;
+            break;
+        case CupCardCubeColour.Blue:
+            cubeCounts [(int)cube]++;
+            break;
+        case CupCardCubeColour.Green:
+            cubeCounts [(int)cube]++;
+            break;
+        case CupCardCubeColour.Yellow:
+            cubeCounts [(int)cube]++;
+            break;
+        case CupCardCubeColour.Red:
+            cubeCounts [(int)cube]++;
+            break;
+        default:
+            Debug.LogError ("Unknown cube type " + cube);
+            return false;
+        }
+        return true;
+    }
+
     bool ValidateCubes ()
     {
         // Verify count of cubes left to play is correct
@@ -1008,35 +1049,68 @@ public class GameLogic : MonoBehaviour
         bool allOk = true;
         for (var i = 0; i < m_cubesRemainingCount; ++i) {
             var cube = m_cubes [i];
-            switch (cube) {
-            case CupCardCubeColour.Grey:
-                cubeCounts [(int)cube]++;
-                break;
-            case CupCardCubeColour.Blue:
-                cubeCounts [(int)cube]++;
-                break;
-            case CupCardCubeColour.Green:
-                cubeCounts [(int)cube]++;
-                break;
-            case CupCardCubeColour.Yellow:
-                cubeCounts [(int)cube]++;
-                break;
-            case CupCardCubeColour.Red:
-                cubeCounts [(int)cube]++;
-                break;
-            default:
-                allOk = false;
-                Debug.LogError ("Unknown cube value " + cube);
-                break;
-            }
+            allOk &= UpdateCubeCounts (cube, cubeCounts);
         }
         for (var cubeType = 0; cubeType < GameLogic.CubeTypeCount; ++cubeType) {
             if (m_cubeCurrentCounts [cubeType] != cubeCounts [cubeType]) {
                 allOk = false;
-                Debug.LogError ("Current Cube count is incorrect " + (CupCardCubeColour)cubeType + " " + cubeCounts [cubeType]);
+                Debug.LogError ("Current Cube count is incorrect " +
+                                (CupCardCubeColour)cubeType + " " +
+                                cubeCounts [cubeType] +
+                                " Expected: " + m_cubeCurrentCounts [cubeType]);
             }
         }
-        //TODO: count cubes in bag + races + players must match the totals
+
+        // Add cubes from races
+        foreach (var race in m_races) {
+            for (int c = 0; c < race.NumberOfCubes; ++c) {
+                var cube = race.GetCube (c);
+                if (cube != CupCardCubeColour.Invalid) {
+                    allOk &= UpdateCubeCounts (cube, cubeCounts);
+                } else if (race.State != RaceState.Finished) {
+                    Debug.LogError ("Invalid cube from race:" + race.name + " but race is not Finished:" + race.State);
+                    allOk = false;
+                }
+            }
+        }
+
+        // Add cubes from players
+        for (int playerIndex = 0; playerIndex < GameLogic.PlayerCount; ++playerIndex) {
+            for (var cubeType = 0; cubeType < GameLogic.CubeTypeCount; ++cubeType) {
+                int cubeCount = m_playerCubeCounts [playerIndex, cubeType];
+                cubeCounts [cubeType] += cubeCount;
+            }
+        }
+
+        // Add cubes from player wildcards
+        for (int playerIndex = 0; playerIndex < GameLogic.PlayerCount; ++playerIndex) {
+            for (var cubeType = 0; cubeType < GameLogic.CubeTypeCount; ++cubeType) {
+                int wildcardCoubt = m_playerWildcardCubeCounts [playerIndex, cubeType];
+                cubeCounts [cubeType] += wildcardCoubt * 3;
+            }
+        }
+
+        // Add cubes from player owned cups
+        for (int playerIndex = 0; playerIndex < GameLogic.PlayerCount; ++playerIndex) {
+            for (var cubeType = 0; cubeType < GameLogic.CubeTypeCount; ++cubeType) {
+                if (m_playerCups [playerIndex, cubeType]) {
+                    int cubeCount = m_cubeWinningCounts [cubeType];
+                    cubeCounts [cubeType] += cubeCount;
+                }
+            }
+        }
+
+        // cubes from bag + races + players (including wildcards) + owned cups 
+        // must match the starting cube counts
+        for (var cubeType = 0; cubeType < GameLogic.CubeTypeCount; ++cubeType) {
+            if (m_cubeStartingCounts [cubeType] != cubeCounts [cubeType]) {
+                allOk = false;
+                Debug.LogError ("Total Cube count is incorrect " +
+                                (CupCardCubeColour)cubeType + " " + cubeCounts [cubeType] +
+                                " Expected: " + m_cubeStartingCounts [cubeType]);
+            }
+        }
+
         //TODO: validate player cube counts and cups won and cubes remaining and wildcards
         return allOk;
     }
