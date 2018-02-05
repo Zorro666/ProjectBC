@@ -6,6 +6,13 @@ public class Race : MonoBehaviour
     RaceLogic m_raceLogic;
     RaceUI m_raceUI;
     GameLogic m_gameLogic;
+    public int NumberOfCubes {
+        get { return m_raceLogic.NumberOfCubes; }
+    }
+
+    public RaceState State {
+        get { return m_raceLogic.State; }
+    }
 
     void Awake ()
     {
@@ -63,5 +70,10 @@ public class Race : MonoBehaviour
     public bool PlayCard (Player player, Card card, Player currentPlayer)
     {
         return m_raceLogic.PlayCard (player, card, currentPlayer);
+    }
+
+    public CupCardCubeColour GetCube (int i)
+    {
+        return m_raceLogic.GetCube (i);
     }
 }
