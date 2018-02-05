@@ -448,4 +448,55 @@ public class RaceTest
             Assert.That (m_RaceLogic.GetCube (c), Is.EqualTo (CupCardCubeColour.Invalid));
         }
     }
+
+    [Test]
+    public void GetPlayedCardReturnsNullIfCardNotPlayed ([Values (1, 2, 3, 4)] int numberOfCubes,
+                                                         [Values (RaceState.Lowest, RaceState.Highest)] RaceState raceType,
+                                                         [Values (Player.Left, Player.Right)] Player side)
+    {
+        PrepareRaceOfSpecificType (numberOfCubes, raceType);
+        StartRace ();
+        for (int c = 0; c < numberOfCubes; ++c) {
+            Assert.That (m_RaceLogic.GetPlayedCard (side, c), Is.Null);
+        }
+    }
+
+    [Test]
+    public void GetPlayedCardReturnsCardsAddedToRace ([Values (1, 2, 3, 4)] int numberOfCubes,
+                                                      [Values (RaceState.Lowest, RaceState.Highest)] RaceState raceType)
+    {
+        PrepareRaceOfSpecificType (numberOfCubes, raceType);
+        m_Cubes = new CupCardCubeColour [4];
+        m_Cubes [0] = CupCardCubeColour.Red;
+        m_Cubes [1] = CupCardCubeColour.Blue;
+        m_Cubes [2] = CupCardCubeColour.Green;
+        m_Cubes [3] = CupCardCubeColour.Yellow;
+        Card [] leftCards = new Card [numberOfCubes];
+        Card [] rightCards = new Card [numberOfCubes];
+        leftCards [0] = new Card (CupCardCubeColour.Red, 1);
+        rightCards [0] = new Card (CupCardCubeColour.Red, 13);
+        if (numberOfCubes > 1) {
+            leftCards [1] = new Card (CupCardCubeColour.Blue, 13);
+            rightCards [1] = new Card (CupCardCubeColour.Blue, 1);
+        }
+        if (numberOfCubes > 2) {
+            leftCards [2] = new Card (CupCardCubeColour.Green, 13);
+            rightCards [2] = new Card (CupCardCubeColour.Green, 1);
+        }
+        if (numberOfCubes > 3) {
+            leftCards [3] = new Card (CupCardCubeColour.Yellow, 13);
+            rightCards [3] = new Card (CupCardCubeColour.Yellow, 1);
+        }
+        StartRace ();
+        Assert.That (m_RaceLogic.State, Is.EqualTo (raceType));
+        for (int c = 0; c < numberOfCubes; ++c) {
+            Assert.That (m_RaceLogic.PlayCard (Player.Left, leftCards [c], Player.Left), Is.True);
+            Assert.That (m_RaceLogic.PlayCard (Player.Right, rightCards [c], Player.Left), Is.True);
+        }
+        for (int c = 0; c < numberOfCubes; ++c) {
+            Assert.That (m_RaceLogic.GetPlayedCard (Player.Left, c), Is.EqualTo (leftCards [c]));
+            Assert.That (m_RaceLogic.GetPlayedCard (Player.Right, c), Is.EqualTo (rightCards [c]));
+        }
+    }
+
 }
