@@ -28,6 +28,7 @@ public class GameLogic : MonoBehaviour
     }
 
     public bool RobotActive { get; private set; }
+    public bool NeedEndPlayerTurn { get; private set; }
 
     System.Random m_random;
     CupCardCubeColour [] m_cubes;
@@ -547,6 +548,7 @@ public class GameLogic : MonoBehaviour
                 m_gameUI.SetCupStatus (cupIndex, true);
             }
             m_gameUI.SetCupInteractible (cupIndex, false);
+            NeedEndPlayerTurn = false;
         }
     }
 
@@ -650,6 +652,7 @@ public class GameLogic : MonoBehaviour
                 var cubeCountToWin = m_cubeWinningCounts [cubeIndex];
                 if (cubeValue + wildcardCount >= cubeCountToWin) {
                     m_gameUI.SetCupInteractible (cubeIndex, true);
+                    NeedEndPlayerTurn = true;
                 }
             }
         }
@@ -741,6 +744,7 @@ public class GameLogic : MonoBehaviour
 
         m_maxNumCardsToSelectFromHand = 1;
         m_playerAlreadyDiscarded = false;
+        NeedEndPlayerTurn = true;
         ResetChosenHandCards ();
         m_turnState = TurnState.StartingPlayerTurn;
         SetPlayerGenericButtonText ("Continue");
@@ -754,21 +758,9 @@ public class GameLogic : MonoBehaviour
         m_gameUI.ShowPlayerGenericButton ((int)m_currentPlayer);
     }
 
-    bool NeedEndPlayerTurn ()
-    {
-        for (var cubeIndex = 0; cubeIndex < GameLogic.CubeTypeCount; ++cubeIndex) {
-            if (!IsCupWon ((CupCardCubeColour)cubeIndex)) {
-                //TODO: this should be tracked in logic not UI
-                if (m_gameUI.IsCupInteractible (cubeIndex))
-                    return true;
-            }
-        }
-        return false;
-    }
-
     void EndPlayerTurn ()
     {
-        if (NeedEndPlayerTurn ()) {
+        if (NeedEndPlayerTurn) {
             m_turnState = TurnState.EndingPlayerTurn;
             SetPlayerGenericButtonText ("Continue");
             ShowPlayerGenericButton ();

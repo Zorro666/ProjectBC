@@ -43,12 +43,6 @@ public class GameUI : MonoBehaviour
         m_unclaimedCupButtons [cupIndex].interactable = interactible;
     }
 
-    //TODO: this should be in logic not UI
-    public bool IsCupInteractible (int cupIndex)
-    {
-        return m_unclaimedCupButtons [cupIndex].interactable;
-    }
-
     public void SetPlayerCubeCountColour (int playerIndex, int cubeIndex, Color colour)
     {
         m_playerCubeCountsTexts [playerIndex, cubeIndex].color = colour;
