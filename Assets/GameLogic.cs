@@ -2,7 +2,7 @@
 using UnityEngine;
 using BC;
 
-public class GameLogic : MonoBehaviour
+public class GameLogic : MonoBehaviour, ISerializationCallbackReceiver
 {
     public Color RaceLowestColour;
     public Color RaceHighestColour;
@@ -31,6 +31,7 @@ public class GameLogic : MonoBehaviour
     public bool NeedEndPlayerTurn { get; private set; }
 
     System.Random m_random;
+    [SerializeField]
     CupCardCubeColour [] m_cubes;
     Color [] m_cardCubeColours;
     int [] m_cubeCurrentCounts;
@@ -1332,5 +1333,13 @@ public class GameLogic : MonoBehaviour
             PlayerGenericButtonClicked ();
             break;
         }
+    }
+
+    public void OnBeforeSerialize ()
+    {
+    }
+
+    public void OnAfterDeserialize ()
+    {
     }
 }
