@@ -24,6 +24,7 @@ public class RaceLogic
     public RaceState State { get; private set; }
     public int NumberOfCubes { get; private set; }
     public Player Winner { get; private set; }
+
     public Card GetPlayedCard (Player side, int i)
     {
         return m_cards [(int)side, i];
@@ -81,11 +82,18 @@ public class RaceLogic
 
     public void StartRace ()
     {
+        if (State == RaceState.Lowest)
+            State = RaceState.Highest;
+        else if (State == RaceState.Highest)
+            State = RaceState.Lowest;
+
         for (var i = 0; i < m_cardsPlayed.Length; ++i)
             m_cardsPlayed [i] = 0;
 
         for (var playerIndex = 0; playerIndex < GameLogic.PlayerCount; ++playerIndex) {
             for (var cardIndex = 0; cardIndex < NumberOfCubes; ++cardIndex) {
+                if (m_cards [playerIndex, cardIndex] != null)
+                    m_DiscardCard (m_cards [playerIndex, cardIndex]);
                 m_cards [playerIndex, cardIndex] = null;
                 if (m_raceUI) {
                     m_raceUI.SetPlayCardButtons (playerIndex, cardIndex, false);
@@ -155,8 +163,8 @@ public class RaceLogic
                 minScorePlayer = player;
             }
         }
-        Debug.Log ("max " + maxScorePlayer + " " + maxScoreValue + " CurrentPlayer:" + currentPlayer);
-        Debug.Log ("min " + minScorePlayer + " " + minScoreValue + " CurrentPlayer:" + currentPlayer);
+        //Debug.Log ("max " + maxScorePlayer + " " + maxScoreValue + " CurrentPlayer:" + currentPlayer);
+        //Debug.Log ("min " + minScorePlayer + " " + minScoreValue + " CurrentPlayer:" + currentPlayer);
         if (State == RaceState.Lowest)
             return minScorePlayer;
         if (State == RaceState.Highest)
@@ -168,25 +176,16 @@ public class RaceLogic
     void FinishRace (Player currentPlayer)
     {
         Winner = ComputeWinner (currentPlayer);
-        Debug.Log (State + " Player " + Winner + " won");
-        for (var cardIndex = 0; cardIndex < NumberOfCubes; ++cardIndex) {
+        //Debug.Log (State + " Player " + Winner + " won");
+        for (var c = 0; c < NumberOfCubes; ++c) {
             var playerIndex = (int)Winner;
-            Card card = m_cards [playerIndex, cardIndex];
-            m_AddCubeToPlayer (Winner, card.Colour);
+            CupCardCubeColour colour = m_cubes [c];
+            m_AddCubeToPlayer (Winner, colour);
+            m_cubes [c] = CupCardCubeColour.Invalid;
         }
-
-        for (var playerIndex = 0; playerIndex < GameLogic.PlayerCount; ++playerIndex) {
-            for (var cardIndex = 0; cardIndex < NumberOfCubes; ++cardIndex)
-                m_DiscardCard (m_cards [playerIndex, cardIndex]);
-        }
-
-        if (State == RaceState.Lowest)
-            State = RaceState.Highest;
-        else if (State == RaceState.Highest)
-            State = RaceState.Lowest;
-
         m_FinishRace (this);
     }
+
 
     public void Initialise (int numberOfCubes, RaceUI raceUI,
                            CubesRemainingInBagDelegate CubesRemainingInBag,
@@ -213,10 +212,11 @@ public class RaceLogic
 
     public void NewGame ()
     {
+        // StartRace will flip the state
         if ((NumberOfCubes % 2) == 1)
-            State = RaceState.Lowest;
-        else
             State = RaceState.Highest;
+        else
+            State = RaceState.Lowest;
         StartRace ();
     }
 
@@ -224,18 +224,18 @@ public class RaceLogic
     {
         //Debug.Log(Name + " PlayCard " + side + " " + card.Colour + " " + card.Value);
         if (State == RaceState.Finished) {
-            Debug.Log (Name + " race is Finished");
+            //Debug.Log (Name + " race is Finished");
             return false;
         }
         var sideIndex = (int)side;
         var cardIndex = m_cardsPlayed [sideIndex];
         if (cardIndex == NumberOfCubes) {
-            Debug.Log (side + " side is full");
+            //Debug.Log (side + " side is full");
             return false;
         }
         var cardColour = (int)card.Colour;
         if (m_cardsRemaining [sideIndex, cardColour] == 0) {
-            Debug.Log (side + " side " + card.Colour + " can't be played");
+            //Debug.Log (side + " side " + card.Colour + " can't be played");
             return false;
         }
         --m_cardsRemaining [sideIndex, cardColour];

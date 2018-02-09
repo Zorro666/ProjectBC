@@ -239,35 +239,38 @@ public class RaceTest
         Assert.That (m_RaceLogic.State, Is.EqualTo (startingState));
         CompleteTestRace (numberOfCubes);
         Assert.That (FinishRaceCallCount, Is.EqualTo (1), "Finish Race was not called once");
+        StartRace ();
         Assert.That (m_RaceLogic.State, Is.EqualTo (expectedState));
 
         FinishRaceCallCount = 0;
         startingState = expectedState;
         expectedState = ToggleState (startingState);
-        StartRace ();
         Assert.That (m_RaceLogic.State, Is.EqualTo (startingState));
         CompleteTestRace (numberOfCubes);
         Assert.That (FinishRaceCallCount, Is.EqualTo (1), "Finish Race was not called once");
+        StartRace ();
         Assert.That (m_RaceLogic.State, Is.EqualTo (expectedState));
     }
 
     [Test]
-    public void FinishRaceMakesLowestRaceBecomeHighest ([Values (1, 2, 3, 4)] int numberOfCubes)
+    public void StartRaceMakesLowestRaceBecomeHighest ([Values (1, 2, 3, 4)] int numberOfCubes)
     {
         CreateLowestRace (numberOfCubes);
         Assert.That (m_RaceLogic.State, Is.EqualTo (RaceState.Lowest));
         CompleteTestRace (numberOfCubes);
         Assert.That (FinishRaceCallCount, Is.EqualTo (1), "Finish Race was not called once");
+        StartRace ();
         Assert.That (m_RaceLogic.State, Is.EqualTo (RaceState.Highest));
     }
 
     [Test]
-    public void FinishRaceMakesHighestRaceBecomeLowest ([Values (1, 2, 3, 4)] int numberOfCubes)
+    public void StartRaceMakesHighestRaceBecomeLowest ([Values (1, 2, 3, 4)] int numberOfCubes)
     {
         CreateHighestRace (numberOfCubes);
         Assert.That (m_RaceLogic.State, Is.EqualTo (RaceState.Highest));
         CompleteTestRace (numberOfCubes);
         Assert.That (FinishRaceCallCount, Is.EqualTo (1), "Finish Race was not called once");
+        StartRace ();
         Assert.That (m_RaceLogic.State, Is.EqualTo (RaceState.Lowest));
     }
 

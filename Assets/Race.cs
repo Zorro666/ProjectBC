@@ -19,10 +19,6 @@ public class Race : MonoBehaviour
         m_raceLogic = new RaceLogic ();
     }
 
-    void Start ()
-    {
-    }
-
     void Update ()
     {
     }
