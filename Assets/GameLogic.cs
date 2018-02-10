@@ -301,7 +301,7 @@ public class GameLogic : MonoBehaviour, ISerializationCallbackReceiver
         if (m_state != GameState.InGame)
             return;
         var cupName = source.name;
-        Debug.Log ("ClaimCup:" + source.name + " by " + m_currentPlayer);
+        Debug.Log ("ClaimCupButton:" + cupName + " by " + m_currentPlayer);
         var cupType = CupCardCubeColour.Count;
         for (CupCardCubeColour c = CupCardCubeColour.Grey; c < CupCardCubeColour.Count; ++c) {
             if (c.ToString () == cupName) {
@@ -310,35 +310,64 @@ public class GameLogic : MonoBehaviour, ISerializationCallbackReceiver
             }
         }
         if (cupType == CupCardCubeColour.Count) {
-            Debug.LogError ("ClaimCup:" + cupName + " unknown cupType");
+            Debug.LogError ("ClaimCupButton:" + cupName + " unknown cupType");
+            return;
+        }
+        string reason;
+        if (!CanClaimCup (cupType, out reason)) {
+            Debug.LogError ("ClaimCupButton: " + cupType + " CanClaimCup failed " + reason);
+            return;
+        }
+        ClaimCup (cupType);
+    }
+
+    bool CanClaimCup (CupCardCubeColour cupType, out string reason)
+    {
+        var cupIndex = (int)cupType;
+        var playerIndex = (int)m_currentPlayer;
+        var cubeCountToWin = m_cubeWinningCounts [cupIndex];
+        if (IsCupWon (cupType)) {
+            reason = "cup is already owned";
+            return false;
+        }
+        if (m_playerCubeCounts [playerIndex, cupIndex] >= cubeCountToWin) {
+            reason = "don't need wildcard cubes to claim cup";
+            return false;
+        }
+        int playerTotalWildcardCubeCount = GetPlayerWildcardCubeCount (m_currentPlayer);
+        if ((m_playerCubeCounts [playerIndex, cupIndex] + playerTotalWildcardCubeCount) < cubeCountToWin) {
+            reason = "can't claim cup using wildcards";
+            return false;
+        }
+        reason = "";
+        return true;
+    }
+
+    void ClaimCup (CupCardCubeColour cupType)
+    {
+        string reason;
+        if (!CanClaimCup (cupType, out reason)) {
+            Debug.LogError ("ClaimCup: " + cupType + " CanClaimCup failed " + reason);
             return;
         }
         var cupIndex = (int)cupType;
         var playerIndex = (int)m_currentPlayer;
         var cubeCountToWin = m_cubeWinningCounts [cupIndex];
-        if (m_playerCubeCounts [playerIndex, cupIndex] >= cubeCountToWin) {
-            Debug.LogError ("ClaimCup:" + cupName + " don't need wildcards to win");
-            return;
-        }
-        int playerTotalWildcardCubeCount = GetPlayerWildcardCubeCount (m_currentPlayer);
-        if ((m_playerCubeCounts [playerIndex, cupIndex] + playerTotalWildcardCubeCount) < cubeCountToWin) {
-            Debug.LogError ("ClaimCup:" + cupName + " can't win the cup");
-            return;
-        }
         var numWildCardsNeeded = cubeCountToWin - m_playerCubeCounts [playerIndex, cupIndex];
         AwardCupToPlayer (m_currentPlayer, cupType);
+        m_cupPayment [cupIndex, cupIndex] += m_playerCubeCounts [playerIndex, cupIndex];
         m_playerCubeCounts [playerIndex, cupIndex] = 0;
         for (int cubeType = 0; cubeType < GameLogic.CubeTypeCount; ++cubeType) {
             var wildcardCount = m_playerWildcardCubeCounts [playerIndex, cubeType];
-            if (wildcardCount >= numWildCardsNeeded) {
-                m_playerWildcardCubeCounts [playerIndex, cubeType] -= numWildCardsNeeded;
-                numWildCardsNeeded -= wildcardCount;
-            }
+            var wildcardUsed = System.Math.Min (wildcardCount, numWildCardsNeeded);
+            m_cupPayment [cupIndex, cubeType] += (wildcardUsed * 3);
+            m_playerWildcardCubeCounts [playerIndex, cubeType] -= wildcardUsed;
+            numWildCardsNeeded -= wildcardUsed;
             if (numWildCardsNeeded <= 0)
                 break;
         }
         if (numWildCardsNeeded > 0) {
-            Debug.LogError ("ClaimCup:" + cupName + " invalid numWildCardsNeeded:" + numWildCardsNeeded);
+            Debug.LogError ("ClaimCup:" + cupType + " invalid numWildCardsNeeded:" + numWildCardsNeeded);
         }
         UpdateCubeCounts ();
         ComputeHasGameEnded ();
@@ -650,12 +679,12 @@ public class GameLogic : MonoBehaviour, ISerializationCallbackReceiver
         ResetUnclaimedCups ();
         var playerIndex = (int)m_currentPlayer;
         var wildcardCount = GetPlayerWildcardCubeCount (m_currentPlayer);
-        for (var cubeIndex = 0; cubeIndex < GameLogic.CubeTypeCount; ++cubeIndex) {
-            if (!IsCupWon ((CupCardCubeColour)cubeIndex)) {
-                var cubeValue = m_playerCubeCounts [playerIndex, cubeIndex];
-                var cubeCountToWin = m_cubeWinningCounts [cubeIndex];
+        for (var cupIndex = 0; cupIndex < GameLogic.CubeTypeCount; ++cupIndex) {
+            if (!IsCupWon ((CupCardCubeColour)cupIndex)) {
+                var cubeValue = m_playerCubeCounts [playerIndex, cupIndex];
+                var cubeCountToWin = m_cubeWinningCounts [cupIndex];
                 if (cubeValue + wildcardCount >= cubeCountToWin) {
-                    m_gameUI.SetCupInteractible (cubeIndex, true);
+                    m_gameUI.SetCupInteractible (cupIndex, true);
                     NeedEndPlayerTurn = true;
                 }
             }
@@ -668,11 +697,13 @@ public class GameLogic : MonoBehaviour, ISerializationCallbackReceiver
         for (var cupIndex = 0; cupIndex < GameLogic.CubeTypeCount; ++cupIndex) {
             var cubeValue = m_playerCubeCounts [playerIndex, cupIndex];
             var cubeCountToWin = m_cubeWinningCounts [cupIndex];
-            CupCardCubeColour cubeType = (CupCardCubeColour)cupIndex;
-            if (cubeValue >= cubeCountToWin) {
-                AwardCupToPlayer (player, cubeType);
-                m_playerCubeCounts [playerIndex, cupIndex] -= cubeCountToWin;
-                m_cupPayment [cupIndex, cupIndex] += cubeCountToWin;
+            CupCardCubeColour cupType = (CupCardCubeColour)cupIndex;
+            if (!IsCupWon (cupType)) {
+                if (cubeValue >= cubeCountToWin) {
+                    AwardCupToPlayer (player, cupType);
+                    m_playerCubeCounts [playerIndex, cupIndex] -= cubeCountToWin;
+                    m_cupPayment [cupIndex, cupIndex] += cubeCountToWin;
+                }
             }
         }
     }
@@ -1083,6 +1114,33 @@ public class GameLogic : MonoBehaviour, ISerializationCallbackReceiver
                 allOk = false;
             }
         }
+
+        // validate cup payments cubes used to win cups : it might not be 5 greens
+        for (var cupType = 0; cupType < GameLogic.CubeTypeCount; ++cupType) {
+            CupCardCubeColour cup = (CupCardCubeColour)cupType;
+            if (IsCupWon (cup)) {
+                int cubePaidCount = 0;
+                for (var cubeType = 0; cubeType < GameLogic.CubeTypeCount; ++cubeType) {
+                    int cubeCount = m_cupPayment [cupType, cubeType];
+                    if (cubeType != cupType) {
+                        if ((cubeCount % 3) != 0) {
+                            Debug.LogError ("Wildcard cube count not a multiple of 3 : " + cubeCount +
+                                            " Cup: " + cup + " Cube: " + (CupCardCubeColour)cubeType);
+                            allOk = false;
+                        }
+                        cubeCount /= 3;
+                    }
+                    cubePaidCount += cubeCount;
+                }
+                if (cubePaidCount != m_cubeWinningCounts [cupType]) {
+                    Debug.LogError ("Cup paid amount is wrong " +
+                                    "Cup: " + cup + " " + cubePaidCount);
+                    allOk = false;
+                }
+            }
+        }
+
+
         return allOk;
     }
 
@@ -1178,30 +1236,6 @@ public class GameLogic : MonoBehaviour, ISerializationCallbackReceiver
             }
         }
 
-        // validate cup payments cubes used to win cups : it might not be 5 greens
-        for (var cupType = 0; cupType < GameLogic.CubeTypeCount; ++cupType) {
-            CupCardCubeColour cup = (CupCardCubeColour)cupType;
-            if (IsCupWon (cup)) {
-                int cubePaidCount = 0;
-                for (var cubeType = 0; cubeType < GameLogic.CubeTypeCount; ++cubeType) {
-                    int cubeCount = m_cupPayment [cupType, cubeType];
-                    if (cubeType != cupType) {
-                        if ((cubeCount % 3) != 0) {
-                            Debug.LogError ("Wildcard cube count not a multiple of 3 : " + cubeCount +
-                                            "Cup: " + cup + " Cube: " + (CupCardCubeColour)cubeType);
-                            allOk = false;
-                        }
-                        cubeCount /= 3;
-                    }
-                    cubePaidCount += cubeCount;
-                }
-                if (cubePaidCount != m_cubeWinningCounts [cupType]) {
-                    Debug.LogError ("Cup paid amount is wrong " +
-                                    "Cup: " + cup + " " + cubePaidCount);
-                    allOk = false;
-                }
-            }
-        }
         return allOk;
     }
 
