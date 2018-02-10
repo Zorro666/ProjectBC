@@ -1334,8 +1334,23 @@ public class GameLogic : MonoBehaviour, ISerializationCallbackReceiver
         }
     }
 
+    void RobotClaimCups ()
+    {
+        // Dumb robot claim every cup it can
+        for (int c = 0; c < GameLogic.CubeTypeCount; ++c) {
+            CupCardCubeColour cupType = (CupCardCubeColour)c;
+            string reason;
+            if (CanClaimCup (cupType, out reason)) {
+                Debug.Log ("Robot Claims Cup : " + cupType);
+                ClaimCup (cupType);
+            }
+        }
+    }
+
     void RobotPressGenericButton ()
     {
+        if (m_turnState == TurnState.FinishingGame)
+            return;
         if (m_gameUI.IsPlayerGenericButtonActive ((int)m_currentPlayer))
             PlayerGenericButtonClicked ();
     }
@@ -1343,6 +1358,8 @@ public class GameLogic : MonoBehaviour, ISerializationCallbackReceiver
     void TakeRobotTurn ()
     {
         if (!RobotActive)
+            return;
+        if (m_state != GameState.InGame)
             return;
         switch (m_turnState) {
         case TurnState.StartingPlayerTurn:
@@ -1364,7 +1381,8 @@ public class GameLogic : MonoBehaviour, ISerializationCallbackReceiver
         case TurnState.FinishingGame:
             break;
         case TurnState.EndingPlayerTurn:
-            PlayerGenericButtonClicked ();
+            RobotClaimCups ();
+            RobotPressGenericButton ();
             break;
         }
     }
