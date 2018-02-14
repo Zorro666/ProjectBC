@@ -1,13 +1,14 @@
-﻿using BC;
+﻿using System;
+using BC;
 
 public class Card
 {
-    public CupCardCubeColour Colour { get; private set; }
-    public int Value { get; private set; }
-
-    public Card (CupCardCubeColour colour, int value)
+    public Card(CupCardCubeColour colour, int value)
     {
         Colour = colour;
         Value = value;
     }
+
+    public CupCardCubeColour Colour { get; }
+    public int Value { get; }
 }

@@ -1,80 +1,77 @@
-﻿using UnityEngine;
+﻿using System;
 using BC;
+using UnityEngine;
 
 public class Race : MonoBehaviour
 {
-    RaceLogic m_raceLogic;
-    RaceUI m_raceUI;
-    GameLogic m_gameLogic;
-    public int NumberOfCubes {
-        get { return m_raceLogic.NumberOfCubes; }
-    }
+    GameLogic m_GameLogic;
+    RaceLogic m_RaceLogic;
+    RaceUI m_RaceUI;
 
-    public RaceState State {
-        get { return m_raceLogic.State; }
-    }
+    public int NumberOfCubes => m_RaceLogic.NumberOfCubes;
 
-    void Awake ()
+    public RaceState State => m_RaceLogic.State;
+
+    void Awake()
     {
-        m_raceLogic = new RaceLogic ();
+        m_RaceLogic = new RaceLogic();
     }
 
-    void Update ()
+    public void Initialise(GameLogic gameLogic)
     {
+        m_GameLogic = gameLogic;
+        m_RaceUI = GetComponent<RaceUI>();
+        if (m_RaceUI == null)
+        {
+            Debug.LogError("m_raceUI is NULL");
+            return;
+        }
+        m_RaceUI.Initialise(gameLogic);
+        m_RaceLogic.Initialise(m_RaceUI.NumberOfCubes, m_RaceUI,
+            m_GameLogic.GetCubesRemainingCount,
+            m_GameLogic.NextCube,
+            m_GameLogic.AddCubeToPlayer,
+            m_GameLogic.DiscardCard,
+            m_GameLogic.FinishRace);
     }
 
-    public void Initialise (GameLogic gameLogic)
+    public void ResetPlayCardButtons()
     {
-        m_gameLogic = gameLogic;
-        m_raceUI = GetComponent<RaceUI> ();
-        if (m_raceUI == null)
-            Debug.LogError ("m_raceUI is NULL");
-        m_raceUI.Initialise (gameLogic);
-        m_raceLogic.Initialise (m_raceUI.NumberOfCubes, m_raceUI,
-                               m_gameLogic.GetCubesRemainingCount,
-                               m_gameLogic.NextCube,
-                               m_gameLogic.AddCubeToPlayer,
-                               m_gameLogic.DiscardCard,
-                               m_gameLogic.FinishRace);
+        m_RaceLogic.ResetPlayCardButtons();
     }
 
-    public void ResetPlayCardButtons ()
+    public void SetPlayCardButtons(Card card)
     {
-        m_raceLogic.ResetPlayCardButtons ();
+        m_RaceLogic.SetPlayCardButtons(card);
     }
 
-    public void SetPlayCardButtons (Card card)
+    public void StartRace()
     {
-        m_raceLogic.SetPlayCardButtons (card);
+        m_RaceLogic.StartRace();
     }
 
-    public void StartRace ()
+    public bool CanPlayCard(Card card)
     {
-        m_raceLogic.StartRace ();
+        return m_RaceLogic.CanPlayCard(card);
     }
 
-    public bool CanPlayCard (Card card)
+    public void NewGame()
     {
-        return m_raceLogic.CanPlayCard (card);
+        m_RaceLogic.NewGame();
     }
 
-    public void NewGame ()
+    public bool PlayCard(Player player, Card card, Player currentPlayer)
     {
-        m_raceLogic.NewGame ();
+        return m_RaceLogic.PlayCard(player, card, currentPlayer);
     }
 
-    public bool PlayCard (Player player, Card card, Player currentPlayer)
+    public CupCardCubeColour GetCube(int i)
     {
-        return m_raceLogic.PlayCard (player, card, currentPlayer);
+        return m_RaceLogic.GetCube(i);
     }
 
-    public CupCardCubeColour GetCube (int i)
+    public Card GetPlayedCard(Player side, int i)
     {
-        return m_raceLogic.GetCube (i);
-    }
-
-    public Card GetPlayedCard (Player side, int i)
-    {
-        return m_raceLogic.GetPlayedCard (side, i);
+        return m_RaceLogic.GetPlayedCard(side, i);
     }
 }

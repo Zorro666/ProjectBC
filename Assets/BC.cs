@@ -1,4 +1,6 @@
-﻿namespace BC
+﻿using System;
+
+namespace BC
 {
     public enum CupCardCubeColour
     {
