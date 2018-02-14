@@ -3,6 +3,7 @@
 Library/
 UnityPackageManager/
 Temp/
+.idea/
 
 # ===========================
 # Default Collab Ignore Rules
@@ -30,6 +31,11 @@ ehthumbs.db
 *.user
 *.unityproj
 *.booproj
+
+# Rider generated
+# =====================================
+Assets/Plugins/Editor/JetBrains/
+Assets/Plugins/Editor/JetBrains.meta
 
 # Unity generated
 # ===============
